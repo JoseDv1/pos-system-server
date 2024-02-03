@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Products and Inventory ---
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id        String   @id @default(uuid())
+  name      String
+  price     Float
+  stock     Int
+  updatedAt DateTime @updatedAt // Para saber cuando fue la ultima vez que se actualizo el inventario de este producto
+
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+
+  supplys        Supply[]
+  products_sales ProductsOnSales[]
+
+  @@map("products")
+}
+
+model Provider {
+  id          String     @id @default(uuid())
+  name        String
+  address     String
+  supplyDates DateTime[]
+  supply      Supply[]
+
+  @@map("providers")
+}
+
+model Supply {
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  provider  Provider @relation(fields: [providerId], references: [id])
+
+  providerId String
+  quantity   Float // Cantidad de producto en cajas/paquetes 
+  unitPrice  Float // Precio unitario
+  supplyDate DateTime // Fecha de llegada del pedido
+
+  @@id([productId, providerId])
+  @@map("supplies")
+}
+
+// --- Clientes ---
+model Client {
+  id      String @id @default(uuid())
+  name    String
+  address String
+  email   String @unique
+  sales   Sale[]
+
+  @@map("clients")
+}
+
+// --- Ventas ---
+// Detalle de cada producto en una venta N:N 
+model ProductsOnSales {
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  sale      Sale    @relation(fields: [saleId], references: [id])
+  saleId    String
+
+  @@id([productId, saleId])
+  @@map("products_on_sales")
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+}
+
+model Sale {
+  id             String            @id @default(uuid())
+  client         Client            @relation(fields: [clientId], references: [id])
+  clientId       String
+  products_Sales ProductsOnSales[]
+  totalPrice     Float
+  paymentMethod  PaymentMethod     @default(CASH)
+  createdAt      DateTime          @default(now())
+
+  @@map("sales")
+}
+
+// --- Usuarios ---
+enum Role {
+  ADMIN
+  USER
+}
+
+model Employee {
+  id       String @id @default(uuid())
+  name     String
+  password String
+  role     Role   @default(USER)
+
+  @@map("employes")
+}
+
+// Por el momento estos modelos no admiten clientes especiales que puedan tener descuentos

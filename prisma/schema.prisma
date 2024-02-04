@@ -35,7 +35,7 @@ model Provider {
   name       String
   address    String
   supplyDays String
-  Supplies   Supply[]
+  supplies   Supply[]
 
   @@map("providers")
 }

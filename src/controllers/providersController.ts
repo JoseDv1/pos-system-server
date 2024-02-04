@@ -10,11 +10,11 @@ import type { Context } from "hono";
  */
 export async function getProviders(ctx: Context) {
 	// Get supplys query from database and return the result
-	const { supply } = ctx.req.query();
+	const { supplies } = ctx.req.query();
 
 	const providers: Provider[] = await prisma.provider.findMany({
 		include: {
-			supply: Boolean(supply),
+			supplies: Boolean(supplies),
 		},
 	});
 
@@ -32,14 +32,14 @@ export async function getProviders(ctx: Context) {
  */
 export async function getProviderById(ctx: Context) {
 	const { id } = ctx.req.param();
-	const { supply } = ctx.req.query();
+	const { supplies } = ctx.req.query();
 
 	const provider = await prisma.provider.findUnique({
 		where: {
 			id: id,
 		},
 		include: {
-			supply: Boolean(supply),
+			supplies: Boolean(supplies),
 		},
 	});
 

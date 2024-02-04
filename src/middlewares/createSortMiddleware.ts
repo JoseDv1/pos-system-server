@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/prisma";
 import type { Context, MiddlewareHandler, Next } from "hono";
 
 
@@ -38,6 +37,6 @@ export function createSortMiddleware<T, K>(
 		};
 
 		// Continue the execution of the next middleware if the sort query parameter is not provided
-		next();
+		await next();
 	}
 }

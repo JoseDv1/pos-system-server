@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- Products and Inventory ---
 model Category {
   id          String    @id @default(uuid())
   name        String
@@ -18,16 +17,15 @@ model Category {
 }
 
 model Product {
-  id        String   @id @default(uuid())
-  name      String
-  price     Float
-  stock     Int
-  updatedAt DateTime @updatedAt // Para saber cuando fue la ultima vez que se actualizo el inventario de este producto
-
-  category       Category          @relation(fields: [categoryId], references: [id])
-  categoryId     String
-  supplys        Supply[]
-  products_sales ProductsOnSales[]
+  id               String             @id @default(uuid())
+  name             String
+  price            Float
+  stock            Int
+  updatedAt        DateTime           @updatedAt
+  categoryId       String
+  category         Category           @relation(fields: [categoryId], references: [id])
+  productsOnSales  ProductsOnSales[]
+  productsOnSupply ProductsOnSupply[]
 
   @@map("products")
 }
@@ -37,26 +35,34 @@ model Provider {
   name       String
   address    String
   supplyDays String
-  supply     Supply[]
+  Supplies   Supply[]
 
   @@map("providers")
 }
 
-model Supply {
-  product   Product  @relation(fields: [productId], references: [id])
+model ProductsOnSupply {
   productId String
-  provider  Provider @relation(fields: [providerId], references: [id])
+  supplyId  String
+  quantity  Int
+  unitCost  Float
+  product   Product @relation(fields: [productId], references: [id])
+  supply    Supply  @relation(fields: [supplyId], references: [id])
 
+  @@id([productId, supplyId])
+  @@map("products_on_supply")
+}
+
+model Supply {
+  id         String             @id @default(uuid())
+  totalCost  Float
+  date       DateTime           @default(now())
   providerId String
-  quantity   Float // Cantidad de producto en cajas/paquetes 
-  unitPrice  Float // Precio unitario
-  supplyDate DateTime // Fecha de llegada del pedido
+  products   ProductsOnSupply[]
+  provider   Provider           @relation(fields: [providerId], references: [id])
 
-  @@id([productId, providerId])
   @@map("supplies")
 }
 
-// --- Clientes ---
 model Client {
   id      String @id @default(uuid())
   name    String
@@ -67,40 +73,26 @@ model Client {
   @@map("clients")
 }
 
-// --- Ventas ---
-// Detalle de cada producto en una venta N:N 
 model ProductsOnSales {
-  product   Product @relation(fields: [productId], references: [id])
   productId String
-  sale      Sale    @relation(fields: [saleId], references: [id])
   saleId    String
+  product   Product @relation(fields: [productId], references: [id])
+  sale      Sale    @relation(fields: [saleId], references: [id])
 
   @@id([productId, saleId])
   @@map("products_on_sales")
 }
 
-enum PaymentMethod {
-  CASH
-  CARD
-  TRANSFER
-}
-
 model Sale {
-  id             String            @id @default(uuid())
-  client         Client            @relation(fields: [clientId], references: [id])
-  clientId       String
-  products_Sales ProductsOnSales[]
-  totalPrice     Float
-  paymentMethod  PaymentMethod     @default(CASH)
-  createdAt      DateTime          @default(now())
+  id            String            @id @default(uuid())
+  clientId      String
+  totalPrice    Float
+  createdAt     DateTime          @default(now())
+  paymentMethod PaymentMethod     @default(CASH)
+  productsSales ProductsOnSales[]
+  client        Client            @relation(fields: [clientId], references: [id])
 
   @@map("sales")
-}
-
-// --- Usuarios ---
-enum Role {
-  ADMIN
-  USER
 }
 
 model Employee {
@@ -112,4 +104,13 @@ model Employee {
   @@map("employes")
 }
 
-// Por el momento estos modelos no admiten clientes especiales que puedan tener descuentos
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+}
+
+enum Role {
+  ADMIN
+  USER
+}

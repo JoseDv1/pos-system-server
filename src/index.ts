@@ -1,9 +1,13 @@
 import { serve } from '@hono/node-server'
 import { type Context, Hono } from 'hono'
+
+// Import Middlewares
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
-import { usersRouter } from './routes/users'
+
+// Import routes
 import { categoriesRouter } from './routes/categoriesRoutes'
+import { productsRouter } from './routes/productsRouter'
 
 
 const app = new Hono()
@@ -18,6 +22,7 @@ app.use(logger())
 
 // ---- Routes ----
 apiRoutes.route('/categories', categoriesRouter)
+apiRoutes.route('/products', productsRouter)
 app.route('/api', apiRoutes)
 
 

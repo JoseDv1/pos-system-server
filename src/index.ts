@@ -3,6 +3,7 @@ import { type Context, Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { usersRouter } from './routes/users'
+import { categoriesRouter } from './routes/categoriesRoutes'
 
 
 const app = new Hono()
@@ -16,7 +17,7 @@ app.use(cors())
 app.use(logger())
 
 // ---- Routes ----
-apiRoutes.route('/users', usersRouter)
+apiRoutes.route('/categories', categoriesRouter)
 app.route('/api', apiRoutes)
 
 
@@ -27,9 +28,8 @@ app.get('/', (ctx: Context) => {
 
 
 // 404 Routes
-app.get('*', (ctx: Context) => {
-  const { method, path } = ctx.req
-  return ctx.text(`Cannot ${method} ${path} 404 Not found `, 404)
+app.notFound((ctx: Context) => {
+  return ctx.text(`404 Not found`, 404)
 })
 
 app.on(['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], '*', (ctx: Context) => {
@@ -39,6 +39,9 @@ app.on(['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], '*', (ctx: Context)
 
 
 // ---- Server ----
+console.log(`Server running on http://localhost:${port}`)
+
+
 serve(
   {
     fetch: app.fetch,

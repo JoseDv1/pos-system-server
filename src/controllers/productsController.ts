@@ -9,11 +9,14 @@ import { Context } from "hono";
  * @returns return all the products from the database
  */
 export async function getProducts(c: Context) {
+	const { category, productsOnSales, productsOnSupply } = c.req.query();
 	// Get all products from the database
 	const products: Array<Product> = await prisma.product.findMany(
 		{
 			include: {
-				category: true
+				category: Boolean(category),
+				productsOnSales: Boolean(productsOnSales),
+				productsOnSupply: Boolean(productsOnSupply),
 			}
 		}
 	);

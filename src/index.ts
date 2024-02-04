@@ -6,8 +6,11 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 
 // Import routes
-import { categoriesRouter } from './routes/categoriesRoutes'
-import { productsRouter } from './routes/productsRouter'
+import { categoriesRouter } from '@/routes/categoriesRoutes'
+import { productsRouter } from '@/routes/productsRouter'
+import { providerRouter } from '@/routes/providersRouter'
+import { clientsRouter } from '@/routes/clientsRouter'
+import { salesRouter } from "@/routes/salesRouter"
 
 
 const app = new Hono()
@@ -23,6 +26,9 @@ app.use(logger())
 // ---- Routes ----
 apiRoutes.route('/categories', categoriesRouter)
 apiRoutes.route('/products', productsRouter)
+apiRoutes.route('/providers', providerRouter)
+apiRoutes.route('/clients', clientsRouter)
+apiRoutes.route('/sales', salesRouter)
 app.route('/api', apiRoutes)
 
 

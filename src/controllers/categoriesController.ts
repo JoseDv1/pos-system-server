@@ -9,8 +9,18 @@ import { Context } from "hono";
  * @returns return all the categories from the database
  */
 export async function getCategories(c: Context) {
+	// Get products query from database and return the result
+	const { products } = c.req.query();
+
 	// Get all categories from the database
-	const categories: Array<Category> = await prisma.category.findMany();
+	const categories: Array<Category> = await prisma.category.findMany(
+		{
+			include: {
+				products: Boolean(products),
+			},
+		}
+	);
+
 	if (!categories) {
 		c.notFound();
 	}
@@ -22,10 +32,14 @@ export async function getCategories(c: Context) {
 export async function getCategoryById(c: Context) {
 	// Get the id from the request parameters
 	const { id } = c.req.param();
+	const { products } = c.req.query();
 
 	// Get the category by id
 	const category = await prisma.category.findUnique({
 		where: { id: id },
+		include: {
+			products: Boolean(products),
+		},
 	});
 
 	// If the model does not exist, return an error

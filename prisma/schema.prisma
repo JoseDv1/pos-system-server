@@ -24,9 +24,8 @@ model Product {
   stock     Int
   updatedAt DateTime @updatedAt // Para saber cuando fue la ultima vez que se actualizo el inventario de este producto
 
-  category   Category @relation(fields: [categoryId], references: [id])
-  categoryId String
-
+  category       Category          @relation(fields: [categoryId], references: [id])
+  categoryId     String
   supplys        Supply[]
   products_sales ProductsOnSales[]
 
@@ -34,11 +33,11 @@ model Product {
 }
 
 model Provider {
-  id          String     @id @default(uuid())
-  name        String
-  address     String
-  supplyDates DateTime[]
-  supply      Supply[]
+  id         String   @id @default(uuid())
+  name       String
+  address    String
+  supplyDays String
+  supply     Supply[]
 
   @@map("providers")
 }

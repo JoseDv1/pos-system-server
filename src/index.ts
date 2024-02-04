@@ -11,6 +11,7 @@ import { productsRouter } from '@/routes/productsRouter'
 import { providerRouter } from '@/routes/providersRouter'
 import { clientsRouter } from '@/routes/clientsRouter'
 import { salesRouter } from "@/routes/salesRouter"
+import { suppliesRouter } from '@/routes/suppliesRouter'
 
 
 const app = new Hono()
@@ -29,6 +30,7 @@ apiRoutes.route('/products', productsRouter)
 apiRoutes.route('/providers', providerRouter)
 apiRoutes.route('/clients', clientsRouter)
 apiRoutes.route('/sales', salesRouter)
+apiRoutes.route('/supplies', suppliesRouter)
 app.route('/api', apiRoutes)
 
 

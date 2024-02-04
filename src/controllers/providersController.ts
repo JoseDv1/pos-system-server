@@ -12,7 +12,7 @@ export async function getProviders(ctx: Context) {
 	// Get supplys query from database and return the result
 	const { supply } = ctx.req.query();
 
-	const providers = await prisma.provider.findMany({
+	const providers: Provider[] = await prisma.provider.findMany({
 		include: {
 			supply: Boolean(supply),
 		},
@@ -161,3 +161,4 @@ export async function deleteProvider(ctx: Context) {
 	// Return the deleted provider
 	return ctx.json(providerExists);
 }
+

@@ -20,10 +20,10 @@ model Product {
   id               String             @id @default(uuid())
   name             String
   price            Float
-  stock            Int
+  stock            Int                @default(0)
   updatedAt        DateTime           @updatedAt
-  categoryId       String
-  category         Category           @relation(fields: [categoryId], references: [id])
+  categoryId       String?
+  category         Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   productsOnSales  ProductsOnSales[]
   productsOnSupply ProductsOnSupply[]
 
@@ -54,7 +54,7 @@ model ProductsOnSupply {
 
 model Supply {
   id         String             @id @default(uuid())
-  totalCost  Float
+  totalCost  Float              @default(0)
   date       DateTime           @default(now())
   providerId String
   products   ProductsOnSupply[]

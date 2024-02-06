@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { findProducts, findUncategorizedProducts } from "@/services/productsServices";
 import { Product } from "@prisma/client";
 import { Context } from "hono";
 
@@ -9,17 +10,26 @@ import { Context } from "hono";
  * @returns return all the products from the database
  */
 export async function getProducts(c: Context) {
-	const { category, productsOnSales, productsOnSupply } = c.req.query();
-	// Get all products from the database
-	const products: Array<Product> = await prisma.product.findMany(
-		{
-			include: {
-				category: Boolean(category),
-				productsOnSales: Boolean(productsOnSales),
-				productsOnSupply: Boolean(productsOnSupply),
-			}
+	const { category } = c.req.query();
+
+	// Get all uncategorized products from the database
+	if (category === "null") {
+
+		// Get all uncategories products from the database
+		const products: Array<Product> = await findUncategorizedProducts();
+
+		if (!products) {
+			c.notFound();
 		}
-	);
+		// Return all the products
+		return c.json(products);
+
+	}
+
+	// Get all products from the database
+	const products = await findProducts({
+		category
+	});
 
 	if (!products) {
 		c.notFound();
@@ -63,7 +73,7 @@ export async function createProduct(c: Context) {
 
 
 	// Validate the fields
-	if (!name || !categoryId || !price || !stock) {
+	if (!name || !categoryId || !price) {
 		return c.json({ error: "All fields are required" }, 400);
 	}
 
@@ -93,7 +103,12 @@ export async function createProduct(c: Context) {
 			name, categoryId, price, stock
 		},
 		include: {
-			category: true
+			category: {
+				select: {
+					name: true,
+					description: true
+				}
+			}
 		}
 	});
 

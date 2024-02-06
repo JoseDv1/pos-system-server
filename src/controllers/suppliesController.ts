@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Context } from "hono";
-import { Supply } from "@prisma/client";
+import { ProductsOnSupply, Supply } from "@prisma/client";
 
 
 /**
@@ -57,11 +57,11 @@ export async function getSupplyById(ctx: Context) {
  */
 export async function createSupply(ctx: Context) {
 	const body: Supply = await ctx.req.json();
-	const { date, providerId, totalCost } = body;
+	const { date, providerId } = body;
 
 	// Check if all the required fields are provided
-	if (!date || !providerId || !totalCost) {
-		return ctx.json({ error: "Date, providerId and totalCost are required" }, 400);
+	if (!date || !providerId) {
+		return ctx.json({ error: "Date and providerId are required" }, 400);
 	}
 
 	// Check if the provider exists
@@ -78,7 +78,6 @@ export async function createSupply(ctx: Context) {
 		data: {
 			date,
 			providerId,
-			totalCost
 		}
 	});
 
@@ -142,3 +141,6 @@ export async function deleteSupply(ctx: Context) {
 
 	return ctx.json(supply);
 }
+
+
+

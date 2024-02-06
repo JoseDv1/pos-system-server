@@ -12,6 +12,8 @@ import { providerRouter } from '@/routes/providersRouter'
 import { clientsRouter } from '@/routes/clientsRouter'
 import { salesRouter } from "@/routes/salesRouter"
 import { suppliesRouter } from '@/routes/suppliesRouter'
+import { productsOnSupplyRouter } from '@/routes/productsOnSuppliesRouter'
+import { ErrorNotFound, handleError } from '@/errors/errors'
 
 
 const app = new Hono()
@@ -31,6 +33,7 @@ apiRoutes.route('/providers', providerRouter)
 apiRoutes.route('/clients', clientsRouter)
 apiRoutes.route('/sales', salesRouter)
 apiRoutes.route('/supplies', suppliesRouter)
+apiRoutes.route('/supply/products', productsOnSupplyRouter)
 app.route('/api', apiRoutes)
 
 
@@ -38,7 +41,6 @@ app.route('/api', apiRoutes)
 app.get('/', (ctx: Context) => {
   return ctx.text('Hello World!')
 })
-
 
 // 404 Routes
 app.notFound((ctx: Context) => {
@@ -49,6 +51,9 @@ app.on(['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], '*', (ctx: Context)
   return ctx.text('Method not allowed', 405)
 })
 
+
+// Error Handler
+app.onError(handleError)
 
 
 // ---- Server ----

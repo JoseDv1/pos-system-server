@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { deleteCategoryById, findCategories, findCategoryById, insertCategory, updateCategory } from "@/services/categoriesServices";
 import { Category } from "@prisma/client";
 import { Context } from "hono";
 
@@ -12,18 +13,9 @@ export async function getCategories(c: Context) {
 	// Get products query from database and return the result
 	const { products } = c.req.query();
 
-	// Get all categories from the database
-	const categories: Array<Category> = await prisma.category.findMany(
-		{
-			include: {
-				products: Boolean(products),
-			},
-		}
-	);
+	// Get the categories from the database
+	const categories = findCategories(products);
 
-	if (!categories) {
-		c.notFound();
-	}
 	// Return all the categories
 	return c.json(categories);
 }
@@ -34,18 +26,8 @@ export async function getCategoryById(c: Context) {
 	const { id } = c.req.param();
 	const { products } = c.req.query();
 
-	// Get the category by id
-	const category = await prisma.category.findUnique({
-		where: { id: id },
-		include: {
-			products: Boolean(products),
-		},
-	});
-
-	// If the model does not exist, return an error
-	if (!category) {
-		return c.notFound();
-	}
+	// Get the category from the database
+	const category = await findCategoryById(id, products);
 
 	// Return the category
 	return c.json(category);
@@ -59,31 +41,10 @@ export async function getCategoryById(c: Context) {
  */
 export async function createCategory(c: Context) {
 	// Get the name from the request body
-	const body: Category = await c.req.json();
-	const { name, description } = body;
+	const data: Category = await c.req.json();
 
-	// Validate the name
-	if (!name) {
-		return c.json({ error: "Name is required" }, 400);
-	}
-
-	// Check if the category already exists
-	const existingCategory = await prisma.category.findFirst({
-		where: { name },
-	});
-
-	// If the category already exists, return an error
-	if (existingCategory) {
-		return c.json({ error: "Category already exists" }, 400);
-	}
-
-	// Create a new category in database
-	const category = await prisma.category.create({
-		data: {
-			name,
-			description,
-		},
-	});
+	// Create the category in the database
+	const category = await insertCategory(data);
 
 	// Response with the created category
 	return c.json(category, 201);
@@ -95,43 +56,15 @@ export async function createCategory(c: Context) {
  * @param c Context parameter from Hono
  * @returns return the updated category from the database
  */
-export async function updateCategory(c: Context) {
+export async function putCategory(c: Context) {
 
 	// Get the id from the request parameters and the name and description from the request body
 	const { id } = c.req.param();
-	const body: Category = await c.req.json();
-	const { name, description } = body;
+	const data: Category = await c.req.json();
 
-	// Validate the name or description
-	if (!name && !description) {
-		return c.json({ error: "Name or description is required" }, 400);
-	}
+	// Update the category in the database
+	const updatedCategory = await updateCategory(id, data);
 
-	// Check if the category already exists
-	const findCategory = await prisma.category.findUnique({
-		where: {
-			id
-		},
-	});
-
-	// If the category does not exists, return an error
-	if (!findCategory) {
-		return c.notFound();
-	}
-
-	// if the object is the same, return the object
-	if (findCategory.name === name && findCategory.description === description) {
-		return c.json(findCategory);
-	}
-
-	// Update the category in database
-	const updatedCategory = await prisma.category.update({
-		where: { id },
-		data: {
-			name,
-			description,
-		},
-	});
 
 	// Response with the updated category
 	return c.json(updatedCategory);
@@ -145,17 +78,7 @@ export async function updateCategory(c: Context) {
 export async function deleteCategory(c: Context) {
 	const { id } = c.req.param();
 
-	const category = await prisma.category.findUnique({
-		where: { id },
-	});
-
-	if (!category) {
-		return c.notFound();
-	}
-
-	const deletedCategory = await prisma.category.delete({
-		where: { id },
-	});
+	const deletedCategory = await deleteCategoryById(id);
 
 	return c.json(deletedCategory);
 }

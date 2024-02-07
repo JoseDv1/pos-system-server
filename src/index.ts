@@ -13,7 +13,8 @@ import { clientsRouter } from '@/routes/clientsRouter'
 import { salesRouter } from "@/routes/salesRouter"
 import { suppliesRouter } from '@/routes/suppliesRouter'
 import { productsOnSupplyRouter } from '@/routes/productsOnSuppliesRouter'
-import { ErrorNotFound, handleError } from '@/errors/errors'
+import { handleError } from '@/errors/errors'
+
 
 
 const app = new Hono()
@@ -33,7 +34,7 @@ apiRoutes.route('/providers', providerRouter)
 apiRoutes.route('/clients', clientsRouter)
 apiRoutes.route('/sales', salesRouter)
 apiRoutes.route('/supplies', suppliesRouter)
-apiRoutes.route('/supply/products', productsOnSupplyRouter)
+apiRoutes.route('/supply', productsOnSupplyRouter)
 app.route('/api', apiRoutes)
 
 

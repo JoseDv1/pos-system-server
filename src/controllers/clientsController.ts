@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Context } from "hono";
 import type { Client } from "@prisma/client";
+import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
 
 
 /**
@@ -19,7 +20,7 @@ export async function getClients(ctx: Context) {
 	);
 
 	if (!clients) {
-		ctx.notFound();
+		throw new ErrorNotFound("Clients not found");
 	}
 
 	return ctx.json(clients);
@@ -45,7 +46,7 @@ export async function getClientById(ctx: Context) {
 	);
 
 	if (!client) {
-		ctx.notFound();
+		throw new ErrorNotFound("Client not found");
 	}
 
 	return ctx.json(client);
@@ -61,7 +62,7 @@ export async function createClient(ctx: Context) {
 
 	// Validate if the requires fields are provided
 	if (!body.name || !body.email) {
-		return ctx.json({ error: "Name and email are required" }, 400);
+		throw new ErrorBadRequest("Name and email are required");
 	}
 
 	// Validate if the client already exists
@@ -72,7 +73,7 @@ export async function createClient(ctx: Context) {
 	});
 
 	if (clientExists) {
-		return ctx.json({ error: "Client already exists" }, 400);
+		throw new ErrorBadRequest("Client already exists");
 	}
 
 	// Create the client
@@ -100,13 +101,13 @@ export async function updateClient(ctx: Context) {
 	});
 
 	if (!clientExists) {
-		return ctx.json({ error: "Client not found" }, 404);
+		throw new ErrorNotFound("Client not found");
 	}
 
 
 	// Validate if almost one field is provided
 	if (!body.name && !body.email && body.address) {
-		return ctx.json({ error: "At least one field is required" }, 400);
+		throw new ErrorBadRequest("At least one field is required");
 	}
 
 	// Update the client
@@ -136,10 +137,8 @@ export async function deleteClient(ctx: Context) {
 	});
 
 	if (!clientExists) {
-		return ctx.json({ error: "Client not found" }, 404);
+		throw new ErrorNotFound("Client not found");
 	}
-
-
 
 	// Delete the client
 	const client = await prisma.client.delete({
@@ -148,5 +147,5 @@ export async function deleteClient(ctx: Context) {
 		},
 	});
 
-	return ctx.json({ message: "Client deleted" });
+	return ctx.json(client);
 }

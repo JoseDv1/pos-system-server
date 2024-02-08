@@ -1,5 +1,3 @@
-
-import { prisma } from "@/lib/prisma";
 import { Context } from "hono";
 import { ProductsOnSupply } from "@prisma/client";
 import { findProductOnSupply, findProductsOnSupply, insertProductsOnSupply, removeProductOnSupply, updateProductOnSupply } from "@/services/productsOnSupplyServices";

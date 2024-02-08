@@ -43,7 +43,7 @@ model Provider {
 model ProductsOnSupply {
   productId String
   supplyId  String
-  quantity  Int
+  quantity  Int     @default(1)
   unitCost  Float
   product   Product @relation(fields: [productId], references: [id])
   supply    Supply  @relation(fields: [supplyId], references: [id])
@@ -53,12 +53,12 @@ model ProductsOnSupply {
 }
 
 model Supply {
-  id         String             @id @default(uuid())
-  totalCost  Float              @default(0)
-  date       DateTime           @default(now())
-  providerId String
-  products   ProductsOnSupply[]
-  provider   Provider           @relation(fields: [providerId], references: [id])
+  id               String             @id @default(uuid())
+  totalCost        Float              @default(0)
+  date             DateTime           @default(now())
+  providerId       String
+  productsOnSupply ProductsOnSupply[]
+  provider         Provider           @relation(fields: [providerId], references: [id])
 
   @@map("supplies")
 }
@@ -76,6 +76,8 @@ model Client {
 model ProductsOnSales {
   productId String
   saleId    String
+  quantity  Int     @default(1)
+  unitCost  Float   @default(0)
   product   Product @relation(fields: [productId], references: [id])
   sale      Sale    @relation(fields: [saleId], references: [id])
 
@@ -86,7 +88,7 @@ model ProductsOnSales {
 model Sale {
   id            String            @id @default(uuid())
   clientId      String
-  totalPrice    Float
+  totalCost     Float             @default(0)
   createdAt     DateTime          @default(now())
   paymentMethod PaymentMethod     @default(CASH)
   productsSales ProductsOnSales[]

@@ -10,7 +10,7 @@ import { suppliesRouter } from '@/routes/suppliesRouter'
 import { productsOnSupplyRouter } from '@/routes/productsOnSuppliesRouter'
 import { productsOnSaleRouter } from '@/routes/productsOnSaleRouter'
 
-
+// Router
 export const apiRoutes = new Hono()
 
 apiRoutes.route('/categories', categoriesRouter)

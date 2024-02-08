@@ -3,11 +3,11 @@ import { getProductsOnSale, getProductOnSale, postProductsOnSale, putProductOnSa
 
 export const productsOnSaleRouter = new Hono();
 
-productsOnSaleRouter.get("/:saleId", getProductsOnSale);
-productsOnSaleRouter.get("/:saleId/products/:productId", getProductOnSale);
-productsOnSaleRouter.post("/:saleId", postProductsOnSale);
-productsOnSaleRouter.put("/:saleId/products/:productId", putProductOnSale);
-productsOnSaleRouter.delete("/:saleId/products/:productId", deleteProductOnSale);
+productsOnSaleRouter.get("/", getProductsOnSale);
+productsOnSaleRouter.get("/:productId", getProductOnSale);
+productsOnSaleRouter.post("/", postProductsOnSale);
+productsOnSaleRouter.put("/:productId", putProductOnSale);
+productsOnSaleRouter.delete("/:productId", deleteProductOnSale);
 
 
 

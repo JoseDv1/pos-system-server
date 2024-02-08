@@ -16,6 +16,8 @@ async function checkIfCategoryExists(categoryId: string) {
 }
 
 export async function findCategories(products: string | undefined) {
+
+	// Get the categories from the database
 	const categories: Array<Category> = await prisma.category.findMany({
 		include: {
 			products: Boolean(products),

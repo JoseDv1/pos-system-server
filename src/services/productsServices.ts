@@ -103,8 +103,11 @@ export async function insertProduct(data: Product) {
 export async function updateProductById(productId: string, data: Product) {
 	const { name, price, stock, categoryId } = data;
 
+
+
+
 	// Check is almost one field is provided
-	if (!name && !price && !stock && !categoryId) {
+	if (!name && !price && !categoryId && stock == undefined) {
 		throw new ErrorBadRequest("At least one field is required");
 	}
 

@@ -11,10 +11,12 @@ import { Context } from "hono";
  */
 export async function getCategories(c: Context) {
 	// Get products query from database and return the result
+
 	const { products } = c.req.query();
 
 	// Get the categories from the database
-	const categories = findCategories(products);
+	const categories = await findCategories(products);
+
 
 	// Return all the categories
 	return c.json(categories);

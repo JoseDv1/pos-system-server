@@ -5,18 +5,18 @@ export const productsOnSupplyRouter = new Hono();
 
 
 // Get All Products on Supply
-productsOnSupplyRouter.get("/:supplyId", getProductsOnSupply);
+productsOnSupplyRouter.get("/", getProductsOnSupply);
 
 // Get a Product on Supply by Id
-productsOnSupplyRouter.get("/:supplyId/products/:productId", getProductsOnSupplyById);
+productsOnSupplyRouter.get("/:productId", getProductsOnSupplyById);
 
 // Insert a Product on Supply
-productsOnSupplyRouter.post("/:supplyId", postProductsOnSupply);
+productsOnSupplyRouter.post("/", postProductsOnSupply);
 
 // Update a Product on Supply
-productsOnSupplyRouter.put("/:supplyId/products/:productId", putProductOnSupply);
+productsOnSupplyRouter.put("/:productId", putProductOnSupply);
 
 // Delete a Product on Supply
-productsOnSupplyRouter.delete("/:supplyId/products/:productId", deleteProductOnSupply);
+productsOnSupplyRouter.delete("/:productId", deleteProductOnSupply);
 
 

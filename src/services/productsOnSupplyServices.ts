@@ -2,6 +2,7 @@ import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
 import { prisma } from "@/lib/prisma";
 import { ProductsOnSupply } from "@prisma/client";
 import { checkIfSupplyExists, checkIfProductExists } from "./validationServices";
+import { findProduct } from "@/services/productsServices"
 
 
 
@@ -77,22 +78,27 @@ export async function insertProductsOnSupply(supplyId: string, products: Product
 		throw new ErrorBadRequest("Quantity cannot be negative");
 	}
 
-	// TODO: Test this validation
 	//---- Disabled beacuse testing skipDuplicates ----
-	// // Check if the product is already on the supply
-	// const productsOnSupplyExists = await prisma.productsOnSupply.findMany({
-	// 	where: {
-	// 		supplyId
-	// 	},
-	// 	include: {
-	// 		product: true
-	// 	}
-	// });
+	// Check if the products is already on the supply
+	const productsOnSupplyExists = await prisma.productsOnSupply.findMany({
+		where: {
+			productId: {
+				in: products.map((product) => product.productId)
+			},
+			supplyId
+		}, include: {
+			product: true
+		}
+	});
 
-	// if (productsOnSupplyExists.length > 0) {
-	// 	const productsOnSupplyNames = productsOnSupplyExists.map((product) => product.product.name);
-	// 	throw new ErrorBadRequest(`Products already on the supply: ${productsOnSupplyNames}`);
-	// }
+
+	productsOnSupplyExists.forEach((productOnSupply) => {
+		const product = products.find((product) => product.productId === productOnSupply.productId);
+		if (product) {
+			throw new ErrorBadRequest(`Product ${productOnSupply.product.name} is already on the supply`);
+		}
+	});
+
 
 
 	// Calculate the total cost of the products to insert on the supply
@@ -117,7 +123,6 @@ export async function insertProductsOnSupply(supplyId: string, products: Product
 					supplyId
 				}
 			}),
-			skipDuplicates: true
 		}),
 
 		// Update the total cost of the supply

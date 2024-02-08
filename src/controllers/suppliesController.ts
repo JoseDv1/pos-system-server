@@ -9,15 +9,9 @@ import { ProductsOnSupply, Supply } from "@prisma/client";
  * @returns return all the supplies from the database
  */
 export async function getSupplies(ctx: Context) {
-	const { products } = ctx.req.query();
 
 	// Get all supplies
 	const supplies: Supply[] = await prisma.supply.findMany(
-		{
-			include: {
-				products: Boolean(products)
-			}
-		}
 	);
 
 	if (!supplies) {
@@ -34,13 +28,9 @@ export async function getSupplies(ctx: Context) {
  */
 export async function getSupplyById(ctx: Context) {
 	const { id } = ctx.req.param();
-	const { products } = ctx.req.query();
 
 	const supply = await prisma.supply.findUnique({
 		where: { id: id },
-		include: {
-			products: Boolean(products)
-		}
 	});
 
 	if (!supply) {
@@ -57,11 +47,11 @@ export async function getSupplyById(ctx: Context) {
  */
 export async function createSupply(ctx: Context) {
 	const body: Supply = await ctx.req.json();
-	const { date, providerId } = body;
+	const { providerId } = body;
 
 	// Check if all the required fields are provided
-	if (!date || !providerId) {
-		return ctx.json({ error: "Date and providerId are required" }, 400);
+	if (!providerId) {
+		return ctx.json({ error: "providerId are required" }, 400);
 	}
 
 	// Check if the provider exists
@@ -76,7 +66,6 @@ export async function createSupply(ctx: Context) {
 	// Create the supply
 	const supply = await prisma.supply.create({
 		data: {
-			date,
 			providerId,
 		}
 	});
@@ -93,6 +82,11 @@ export async function updateSupply(ctx: Context) {
 	const { id } = ctx.req.param();
 	const body: Supply = await ctx.req.json();
 	const { date, providerId, totalCost } = body;
+
+	// Check if all the required fields are provided
+	if (!date && !providerId && totalCost == undefined) {
+		return ctx.json({ error: "date, providerId and totalCost are required" }, 400);
+	}
 
 	// Check if the supply exists
 	const supply = await prisma.supply.findUnique({

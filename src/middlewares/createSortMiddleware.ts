@@ -18,10 +18,16 @@ export function createSortMiddleware<T, K>(
 	// Return the middleware function
 	return async function (c: Context, next: Next) {
 		// Get the sort query parameter from the request
+
+
 		const query = c.req.query();
 		const { sort } = query;
+
 		// If the sort query parameter is provided in the request URL then sort the items
-		if (sort) {
+		if (sort !== undefined) {
+
+			console.log(sort)
+
 			// Validate the sort query parameter
 			if (sort !== "asc" && sort !== "desc") {
 				return c.json({ error: "Invalid sort value" }, 400);
@@ -33,7 +39,6 @@ export function createSortMiddleware<T, K>(
 
 			// Return the sorted items and stop the execution of the next middleware
 			return c.json(sortedItems);
-
 		};
 
 		// Continue the execution of the next middleware if the sort query parameter is not provided

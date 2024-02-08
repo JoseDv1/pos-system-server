@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { prisma } from "@/lib/prisma";
 import { createSortMiddleware } from "@/middlewares/createSortMiddleware";
-import { createSupply, deleteSupply, getSupplies, getSupplyById, updateSupply } from "@/controllers/SuppliesController";
+import { createSupply, deleteSupply, getSupplies, getSupplyById, updateSupply } from "@/controllers/suppliesController";
 import type { Supply, Prisma } from "@prisma/client";
 
 export const suppliesRouter = new Hono();
@@ -16,3 +16,4 @@ suppliesRouter.post("/", createSupply);
 suppliesRouter.put("/:id", updateSupply);
 // Delete a supply
 suppliesRouter.delete("/:id", deleteSupply);
+

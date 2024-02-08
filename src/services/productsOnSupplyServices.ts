@@ -1,34 +1,10 @@
 import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
 import { prisma } from "@/lib/prisma";
 import { ProductsOnSupply } from "@prisma/client";
+import { checkIfSupplyExists, checkIfProductExists } from "./validationServices";
 
 
-// ------------------- Validations -------------------
-async function checkIfSupplyExists(supplyId: string) {
-	// Validate if the supply exists
-	const supply = await prisma.supply.findUnique({
-		where: { id: supplyId }
-	});
 
-	if (!supply) {
-		throw new ErrorNotFound("Supply not found 404");
-	}
-
-	return supply;
-}
-
-async function checkIfProductExists(productId: string) {
-	// Validate if the product exists
-	const product = await prisma.product.findUnique({
-		where: { id: productId }
-	});
-
-	if (!product) {
-		throw new ErrorNotFound("Product not found 404");
-	}
-
-	return product;
-}
 
 // ------------------- Services -------------------
 export async function findProductsOnSupply(supplyId: string) {
@@ -36,13 +12,14 @@ export async function findProductsOnSupply(supplyId: string) {
 	const supply = await checkIfSupplyExists(supplyId);
 
 	// Get all products on the supply
-	const productsOnSupply: Array<ProductsOnSupply> = await prisma.productsOnSupply.findMany({
-		where: {
-			supplyId,
-		},
+	const productsOnSupply = await prisma.supply.findUnique({
+		where: { id: supplyId },
 		include: {
-			product: true,
-			supply: true
+			productsOnSupply: {
+				include: {
+					product: true
+				}
+			}
 		}
 	});
 
@@ -128,16 +105,6 @@ export async function insertProductsOnSupply(supplyId: string, products: Product
 	}
 
 
-	const productUpdates = products.map((product) => {
-		return prisma.product.update({
-			where: { id: product.productId },
-			data: {
-				stock: {
-					increment: product.quantity
-				}
-			}
-		})
-	});
 
 
 
@@ -164,7 +131,16 @@ export async function insertProductsOnSupply(supplyId: string, products: Product
 		}),
 
 		// Update the stock of the products
-		...productUpdates
+		...products.map((product) => {
+			return prisma.product.update({
+				where: { id: product.productId },
+				data: {
+					stock: {
+						increment: product.quantity
+					}
+				}
+			})
+		})
 	]);
 
 

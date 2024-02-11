@@ -71,7 +71,7 @@ export async function insertProductsOnSale(saleId: string, products: ProductsOnS
 	await checkIfSaleExist(saleId);
 
 	// Chek if all products exists
-	products.forEach(async (product) => {
+	for (const product of products) {
 		const oldProduct = await checkIfProductExists(product.productId);
 
 		// Check the cost and quantity of the products
@@ -81,10 +81,29 @@ export async function insertProductsOnSale(saleId: string, products: ProductsOnS
 
 		// Check if the quantity of the products is enough
 		if (product.quantity > oldProduct.stock) {
-			throw new ErrorBadRequest(`The quantity of the product ${oldProduct.name} is not enough `);
+			throw new ErrorBadRequest(`quantity of the product ${oldProduct.name} is not enough`)
+		}
+	}
+
+	// Check if the product is already on the sale
+	const productsOnSaleExists = await prisma.productsOnSales.findMany({
+		where: {
+			productId: {
+				in: products.map((product) => product.productId)
+			},
+			saleId
+		},
+		include: {
+			product: true
 		}
 	});
 
+	productsOnSaleExists.forEach((productsOnSaleExists) => {
+		const product = products.find((product) => product.productId === productsOnSaleExists.productId);
+		if (product) {
+			throw new ErrorBadRequest(`Product ${productsOnSaleExists.product.name} is already on the supply`);
+		}
+	});
 
 	// Calculate the total cost of the sale
 	const totalCost = products.reduce((acc, product) => {
@@ -92,7 +111,8 @@ export async function insertProductsOnSale(saleId: string, products: ProductsOnS
 	}, 0);
 
 
-	const [updatedProducts] = await prisma.$transaction([
+
+	const [createdProducts] = await prisma.$transaction([
 		//  Insert the products on the sale
 		prisma.productsOnSales.createMany({
 			data: products.map((product) => {
@@ -128,11 +148,11 @@ export async function insertProductsOnSale(saleId: string, products: ProductsOnS
 		})
 	]);
 
-	if (!updatedProducts) {
+	if (!createdProducts) {
 		throw new ErrorBadRequest("Products on sale not created");
 	}
 
-	return updatedProducts;
+	return createdProducts;
 
 }
 
@@ -144,6 +164,18 @@ export async function updateProductsOnSale(saleId: string, productId: string, da
 	// Validate if the product exists
 	const oldProduct = await checkIfProductExists(productId);
 
+	const oldProductOnSale = await prisma.productsOnSales.findUnique({
+		where: {
+			productId_saleId: {
+				productId, saleId
+			}
+		}
+	});
+
+	if (!oldProductOnSale) {
+		throw new ErrorNotFound("Product on sale not found");
+	}
+
 	// Check the cost and quantity of the product
 	if (data.unitCost <= 0 || data.quantity <= 0) {
 		throw new ErrorBadRequest("Invalid value or quantity");
@@ -154,31 +186,26 @@ export async function updateProductsOnSale(saleId: string, productId: string, da
 		throw new ErrorBadRequest("At least one field must be updated");
 	}
 
-	// Get the diference between the old and the new quantity
-	const diferenceQuantity = data.quantity - oldProduct.stock;
 
+	// Invetory the quantity of the product
+	const quantityDiference = data.quantity - oldProductOnSale.quantity;
 
-	// Check if the quantity of the product is enough
-	if (diferenceQuantity > oldProduct.stock) {
-		throw new ErrorBadRequest("The quantity of the product is not enough");
+	// Calculate the new Stck of the product
+	const newStock = oldProduct.stock - quantityDiference
+
+	// Check if the quantity of the products is enough
+	if (newStock < 0) {
+		throw new ErrorBadRequest(`quantity of the product ${oldProduct.name} is not enough`)
 	}
+
 
 	// Get the diference between the old and the new cost
 	const diferenceCost = (data.unitCost * data.quantity) - oldSale.totalCost;
 
-
 	// Update the product on the sale, the total cost of the sale and the quantity of the product in stock
-	const [updatedProduct] = await prisma.$transaction([
+	const [_, __, updatedProduct] = await prisma.$transaction([
 
-		// Update the product on the sale
-		prisma.productsOnSales.update({
-			where: {
-				productId_saleId: {
-					productId, saleId
-				}
-			},
-			data,
-		}),
+
 
 		// Update the total cost of the sale
 		prisma.sale.update({
@@ -192,9 +219,23 @@ export async function updateProductsOnSale(saleId: string, productId: string, da
 		prisma.product.update({
 			where: { id: productId },
 			data: {
-				stock: oldProduct.stock - diferenceQuantity
+				stock: newStock
 			}
-		})
+		}),
+
+		// Update the product on the sale
+		prisma.productsOnSales.update({
+			where: {
+				productId_saleId: {
+					productId, saleId
+				}
+			},
+			data,
+			include: {
+				product: true,
+				sale: true
+			}
+		}),
 	]);
 
 	if (!updatedProduct) {

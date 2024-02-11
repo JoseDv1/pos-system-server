@@ -19,6 +19,7 @@ export async function postProductsOnSale(c: Context) {
 	const products = await c.req.json<ProductsOnSales[]>();
 	const productsOnSale = await insertProductsOnSale(saleId, products);
 	return c.json(productsOnSale);
+
 }
 
 export async function putProductOnSale(c: Context) {

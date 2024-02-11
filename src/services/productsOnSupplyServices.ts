@@ -73,12 +73,11 @@ export async function insertProductsOnSupply(supplyId: string, products: Product
 	}
 
 	// Check if the quantity of the products is negative
-	const negativeQuantity = products.find((product) => product.quantity < 0);
+	const negativeQuantity = products.find((product) => product.quantity <= 0);
 	if (negativeQuantity) {
 		throw new ErrorBadRequest("Quantity cannot be negative");
 	}
 
-	//---- Disabled beacuse testing skipDuplicates ----
 	// Check if the products is already on the supply
 	const productsOnSupplyExists = await prisma.productsOnSupply.findMany({
 		where: {
@@ -114,16 +113,7 @@ export async function insertProductsOnSupply(supplyId: string, products: Product
 
 
 
-	const [insertedProductsOnSupply] = await prisma.$transaction([
-		// Insert the products on the supply
-		prisma.productsOnSupply.createMany({
-			data: products.map((product) => {
-				return {
-					...product,
-					supplyId
-				}
-			}),
-		}),
+	const transaction = await prisma.$transaction([
 
 		// Update the total cost of the supply
 		prisma.supply.update({
@@ -145,14 +135,22 @@ export async function insertProductsOnSupply(supplyId: string, products: Product
 					}
 				}
 			})
-		})
+		}),
+
+		// Insert the products on the supply
+		prisma.productsOnSupply.createMany({
+			data: products.map((product) => {
+				return {
+					...product,
+					supplyId
+				}
+			}),
+		}),
 	]);
 
 
 	// Return the inserted products on supply
-	return insertedProductsOnSupply;
-
-
+	return transaction[transaction.length - 1];
 }
 
 export async function updateProductOnSupply(supplyId: string, productId: string, data: ProductsOnSupply) {
@@ -185,37 +183,39 @@ export async function updateProductOnSupply(supplyId: string, productId: string,
 	}
 
 
-	const [updatedProductOnSupply, updatedSupplyTotalCost, updatedProductTotalStock] = await prisma.$transaction(// Update the product on the supply
-		[prisma.productsOnSupply.update({
-			where: {
-				productId_supplyId: {
-					productId,
-					supplyId
-				}
-			}, data,
-			include: {
-				supply: true,
-				product: true
-			}
-		}),
+	const [updatedSupplyTotalCost, updatedProductTotalStock, updatedProductOnSupply] = await prisma.$transaction(// Update the product on the supply
+		[
 
-		// Update the total cost of the supply
-		prisma.supply.update({
-			where: { id: supplyId },
-			data: {
-				totalCost: newTotalCost
-			}
-		}),
-
-		// Update the stock of the product
-		prisma.product.update({
-			where: { id: productId },
-			data: {
-				stock: {
-					increment: stockDiference
+			// Update the total cost of the supply
+			prisma.supply.update({
+				where: { id: supplyId },
+				data: {
+					totalCost: newTotalCost
 				}
-			}
-		})]);
+			}),
+
+			// Update the stock of the product
+			prisma.product.update({
+				where: { id: productId },
+				data: {
+					stock: {
+						increment: stockDiference
+					}
+				}
+			}),
+			prisma.productsOnSupply.update({
+				where: {
+					productId_supplyId: {
+						productId,
+						supplyId
+					}
+				}, data,
+				include: {
+					product: true,
+					supply: true
+				}
+			})
+		]);
 
 
 	return updatedProductOnSupply;

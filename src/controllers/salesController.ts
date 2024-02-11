@@ -1,6 +1,7 @@
 import { Context } from "hono";
 import { prisma } from "@/lib/prisma";
 import { $Enums, type Sale } from "@prisma/client";
+import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
 
 /**
  * Get Sales Controller function that returns all the sales from the database.
@@ -9,6 +10,8 @@ import { $Enums, type Sale } from "@prisma/client";
  */
 export async function getSales(ctx: Context) {
 	const { clients, productsSales } = ctx.req.query();
+
+
 	const sales: Sale[] = await prisma.sale.findMany(
 		{
 			include: {
@@ -19,7 +22,7 @@ export async function getSales(ctx: Context) {
 	);
 
 	if (!sales) {
-		ctx.notFound();
+		throw new ErrorNotFound("Sales not found");
 	}
 
 	return ctx.json(sales);
@@ -45,7 +48,7 @@ export async function getSaleById(ctx: Context) {
 	});
 
 	if (!sale) {
-		ctx.notFound();
+		throw new ErrorNotFound("Sale not found");
 	}
 
 	return ctx.json(sale);
@@ -58,16 +61,16 @@ export async function getSaleById(ctx: Context) {
  */
 export async function createSale(ctx: Context) {
 	const body: Sale = await ctx.req.json();
-	const { clientId, paymentMethod, totalPrice } = body
+	const { clientId, paymentMethod } = body
 
 	// Check if the fields are not empty
-	if (!clientId || !paymentMethod || !totalPrice) {
-		ctx.json({ message: "All fields are required" });
+	if (!clientId) {
+		throw new ErrorBadRequest("All fields are required");
 	}
 
 	// Check if the paymentMethod is valid
-	if (!$Enums.PaymentMethod[paymentMethod]) {
-		ctx.json({ message: "Invalid payment method" });
+	if (paymentMethod && !$Enums.PaymentMethod[paymentMethod]) {
+		throw new ErrorBadRequest("Invalid payment method");
 	}
 
 	// Check if the client exists
@@ -76,8 +79,10 @@ export async function createSale(ctx: Context) {
 			id: clientId
 		}
 	});
+
+
 	if (!client) {
-		ctx.json({ message: "Client not found" }, 404);
+		throw new ErrorNotFound("Client not found");
 	}
 
 	// Create a sale
@@ -85,9 +90,12 @@ export async function createSale(ctx: Context) {
 		data: {
 			clientId,
 			paymentMethod,
-			totalPrice
 		}
 	});
+
+	if (!sale) {
+		throw new ErrorBadRequest("Sale not created");
+	}
 
 	// Return the created sale
 	return ctx.json(sale);
@@ -101,16 +109,16 @@ export async function createSale(ctx: Context) {
 export async function updateSale(ctx: Context) {
 	const { id } = ctx.req.param();
 	const body: Sale = await ctx.req.json();
-	const { clientId, paymentMethod, totalPrice } = body
+	const { clientId, paymentMethod, totalCost } = body
 
 	// Check if almost one field is not empty
-	if (!clientId && !paymentMethod && !totalPrice) {
-		ctx.json({ message: "At least one field is required" });
+	if (!clientId && !paymentMethod && !totalCost) {
+		throw new ErrorBadRequest("At least one field is required");
 	}
 
 	// Check if the paymentMethod is valid
 	if (!$Enums.PaymentMethod[paymentMethod]) {
-		ctx.json({ message: "Invalid payment method" });
+		throw new ErrorBadRequest("Invalid payment method");
 	}
 
 
@@ -122,7 +130,7 @@ export async function updateSale(ctx: Context) {
 	});
 
 	if (!client) {
-		ctx.json({ message: "Client not found" }, 404);
+		throw new ErrorNotFound("Client not found");
 	}
 
 	// Check if the sale exists
@@ -133,7 +141,7 @@ export async function updateSale(ctx: Context) {
 	});
 
 	if (!saleExists) {
-		ctx.json({ message: "Sale not found" }, 404);
+		throw new ErrorNotFound("Sale not found");
 	}
 
 	// Update the sale
@@ -144,7 +152,7 @@ export async function updateSale(ctx: Context) {
 		data: {
 			clientId,
 			paymentMethod,
-			totalPrice
+			totalCost
 		}
 	});
 
@@ -168,7 +176,7 @@ export async function deleteSale(ctx: Context) {
 	});
 
 	if (!saleExists) {
-		ctx.json({ message: "Sale not found" }, 404);
+		throw new ErrorNotFound("Sale not found");
 	}
 
 	// Delete the sale

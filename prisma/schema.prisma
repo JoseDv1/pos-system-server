@@ -33,7 +33,7 @@ model Product {
 model Provider {
   id         String   @id @default(uuid())
   name       String
-  address    String
+  phone      String
   supplyDays String
   supplies   Supply[]
 
@@ -56,18 +56,18 @@ model Supply {
   id               String             @id @default(uuid())
   totalCost        Float              @default(0)
   date             DateTime           @default(now())
-  providerId       String
+  providerId       String?
   productsOnSupply ProductsOnSupply[]
-  provider         Provider           @relation(fields: [providerId], references: [id])
+  provider         Provider?          @relation(fields: [providerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@map("supplies")
 }
 
 model Client {
-  id      String @id @default(uuid())
-  name    String
-  address String
-  email   String @unique
+  id      String  @id @default(uuid())
+  name    String  @unique
+  address String?
+  email   String? @unique
   sales   Sale[]
 
   @@map("clients")
@@ -90,8 +90,9 @@ model Sale {
   clientId      String
   totalCost     Float             @default(0)
   createdAt     DateTime          @default(now())
+  status        Status            @default(PENDING)
   paymentMethod PaymentMethod     @default(CASH)
-  productsSales ProductsOnSales[]
+  saleProducts  ProductsOnSales[]
   client        Client            @relation(fields: [clientId], references: [id])
 
   @@map("sales")
@@ -115,4 +116,9 @@ enum PaymentMethod {
 enum Role {
   ADMIN
   USER
+}
+
+enum Status {
+  PENDING
+  PAYED
 }

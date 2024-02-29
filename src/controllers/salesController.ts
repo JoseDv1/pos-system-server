@@ -9,14 +9,14 @@ import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
  * @returns All the sales from the database
  */
 export async function getSales(ctx: Context) {
-	const { clients, productsSales } = ctx.req.query();
+	const { productsSales } = ctx.req.query();
 
 
 	const sales: Sale[] = await prisma.sale.findMany(
 		{
 			include: {
-				client: Boolean(clients),
-				productsSales: Boolean(productsSales),
+				client: true,
+				saleProducts: Boolean(productsSales),
 			}
 		}
 	);
@@ -43,7 +43,7 @@ export async function getSaleById(ctx: Context) {
 		},
 		include: {
 			client: Boolean(clients),
-			productsSales: Boolean(productsSales),
+			saleProducts: Boolean(productsSales),
 		}
 	});
 
@@ -90,6 +90,9 @@ export async function createSale(ctx: Context) {
 		data: {
 			clientId,
 			paymentMethod,
+		},
+		include: {
+			client: true
 		}
 	});
 
@@ -109,28 +112,35 @@ export async function createSale(ctx: Context) {
 export async function updateSale(ctx: Context) {
 	const { id } = ctx.req.param();
 	const body: Sale = await ctx.req.json();
-	const { clientId, paymentMethod, totalCost } = body
+	const { clientId, paymentMethod, totalCost, status } = body
 
 	// Check if almost one field is not empty
-	if (!clientId && !paymentMethod && !totalCost) {
+	if (!clientId && !paymentMethod && !totalCost && !status) {
 		throw new ErrorBadRequest("At least one field is required");
 	}
 
 	// Check if the paymentMethod is valid
-	if (!$Enums.PaymentMethod[paymentMethod]) {
+	if (paymentMethod && !$Enums.PaymentMethod[paymentMethod]) {
 		throw new ErrorBadRequest("Invalid payment method");
 	}
 
+	// Check if the status is valid
+	if (status && !$Enums.Status[status]) {
+		throw new ErrorBadRequest("Invalid sale status");
+	}
 
-	// Check if the client exists
-	const client = await prisma.client.findUnique({
-		where: {
-			id: clientId
+
+	if (clientId) {
+		// Check if the client exists
+		const client = await prisma.client.findUnique({
+			where: {
+				id: clientId
+			}
+		});
+
+		if (!client) {
+			throw new ErrorNotFound("Client not found");
 		}
-	});
-
-	if (!client) {
-		throw new ErrorNotFound("Client not found");
 	}
 
 	// Check if the sale exists
@@ -152,7 +162,8 @@ export async function updateSale(ctx: Context) {
 		data: {
 			clientId,
 			paymentMethod,
-			totalCost
+			totalCost,
+			status
 		}
 	});
 

@@ -64,7 +64,7 @@ export async function insertProduct(data: Product) {
 
 	// Check if the product already exists
 	const existingProduct = await prisma.product.findFirst({
-		where: { name, categoryId, price, stock },
+		where: { name, categoryId },
 	});
 
 	// If the product already exists, return an error
@@ -102,9 +102,6 @@ export async function insertProduct(data: Product) {
 
 export async function updateProductById(productId: string, data: Product) {
 	const { name, price, stock, categoryId } = data;
-
-
-
 
 	// Check is almost one field is provided
 	if (!name && !price && !categoryId && stock == undefined) {

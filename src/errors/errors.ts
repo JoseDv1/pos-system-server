@@ -40,5 +40,6 @@ export function handleError(error: Error, ctx: Context) {
 		return ctx.json({ error: error.message }, error.status);
 	}
 
+	console.error(error);
 	return ctx.json({ error: error.message }, 500);
 }

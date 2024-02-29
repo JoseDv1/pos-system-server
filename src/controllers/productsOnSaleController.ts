@@ -16,8 +16,9 @@ export async function getProductOnSale(c: Context) {
 
 export async function postProductsOnSale(c: Context) {
 	const { saleId } = c.req.param();
-	const products = await c.req.json<ProductsOnSales[]>();
-	const productsOnSale = await insertProductsOnSale(saleId, products);
+	const product = await c.req.json<ProductsOnSales>();
+
+	const productsOnSale = await insertProductsOnSale(saleId, product);
 	return c.json(productsOnSale);
 
 }

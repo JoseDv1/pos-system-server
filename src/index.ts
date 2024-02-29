@@ -1,5 +1,5 @@
 import { serve } from '@hono/node-server'
-import { type Context, Hono } from 'hono'
+import { type Context, Hono, MiddlewareHandler } from 'hono'
 
 // Import Middlewares
 import { cors } from 'hono/cors'
@@ -13,13 +13,12 @@ import { apiRoutes } from '@/routes/indexRoute'
 
 const app = new Hono()
 
-
 // ---- Config ----
 const port = 3000
 
 // ---- Middlewares ----
-app.use(cors())
-app.use(logger())
+app.use("*", cors())
+app.use("*", logger())
 
 // ---- Routes ----
 app.route('/api', apiRoutes)

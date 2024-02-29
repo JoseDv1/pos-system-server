@@ -58,10 +58,10 @@ export async function getProviderById(ctx: Context) {
  */
 export async function createProvider(ctx: Context) {
 	const body: Provider = await ctx.req.json();
-	const { address, name, supplyDays } = body
+	const { phone, name, supplyDays } = body
 
 	// Validate the request body
-	if (!address || !name || !supplyDays) {
+	if (!phone || !name || !supplyDays) {
 		return ctx.json({ error: "Missing required fields" }, 400);
 	}
 
@@ -78,7 +78,7 @@ export async function createProvider(ctx: Context) {
 
 	const createdProvider = await prisma.provider.create({
 		data: {
-			address,
+			phone,
 			name,
 			supplyDays,
 		},
@@ -96,10 +96,10 @@ export async function createProvider(ctx: Context) {
 export async function updateProvider(ctx: Context) {
 	const body: Provider = await ctx.req.json();
 	const { id } = ctx.req.param();
-	const { address, name, supplyDays } = body;
+	const { phone, name, supplyDays } = body;
 
 	// Validate if almost one field is provided
-	if (!address && !name && !supplyDays) {
+	if (!phone && !name && !supplyDays) {
 		return ctx.json({ error: "At least one field is required" }, 400);
 	}
 
@@ -122,7 +122,7 @@ export async function updateProvider(ctx: Context) {
 			id: id,
 		},
 		data: {
-			address,
+			phone,
 			name,
 			supplyDays,
 		},

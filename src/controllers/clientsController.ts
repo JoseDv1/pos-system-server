@@ -58,17 +58,17 @@ export async function getClientById(ctx: Context) {
  * @returns The created client or an error if the client already exists or the name is not provided
  */
 export async function createClient(ctx: Context) {
-	const body: Client = await ctx.req.json();
+	const body = await ctx.req.json();
 
 	// Validate if the requires fields are provided
-	if (!body.name || !body.email) {
-		throw new ErrorBadRequest("Name and email are required");
+	if (!body.name) {
+		throw new ErrorBadRequest("Name are required");
 	}
 
 	// Validate if the client already exists
 	const clientExists = await prisma.client.findUnique({
 		where: {
-			email: body.email,
+			name: body.name,
 		},
 	});
 

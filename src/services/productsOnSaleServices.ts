@@ -16,11 +16,12 @@ export async function findProductsOnSale(saleId: string) {
 	const productsOnSale = await prisma.sale.findUnique({
 		where: { id: saleId },
 		include: {
-			productsSales: {
+			saleProducts: {
 				include: {
-					product: true
+					product: true,
 				}
-			}
+			},
+			client: true
 		}
 	})
 
@@ -46,7 +47,7 @@ export async function findProductsOnSaleByProductId(saleId: string, productId: s
 				id: saleId
 			},
 			include: {
-				productsSales: {
+				saleProducts: {
 					where: {
 						productId
 					},
@@ -66,65 +67,52 @@ export async function findProductsOnSaleByProductId(saleId: string, productId: s
 }
 
 // Insert products on the sale
-export async function insertProductsOnSale(saleId: string, products: ProductsOnSales[]) {
+export async function insertProductsOnSale(saleId: string, product: ProductsOnSales) {
+
+	if (product.unitCost) {
+		product.unitCost = Number(product.unitCost);
+	}
+
+	if (product.quantity) {
+		product.quantity = Number(product.quantity);
+	}
+
 	// Validate if the sale exists
 	await checkIfSaleExist(saleId);
 
 	// Chek if all products exists
-	for (const product of products) {
-		const oldProduct = await checkIfProductExists(product.productId);
+	const oldProduct = await checkIfProductExists(product.productId);
 
-		// Check the cost and quantity of the products
-		if (product.unitCost <= 0 || product.quantity <= 0) {
-			throw new ErrorBadRequest("Invalid value or quantity")
-		}
-
-		// Check if the quantity of the products is enough
-		if (product.quantity > oldProduct.stock) {
-			throw new ErrorBadRequest(`quantity of the product ${oldProduct.name} is not enough`)
-		}
+	// Check the cost and quantity of the products
+	if (product.unitCost && product.unitCost <= 0 || product.quantity && product.quantity <= 0) {
+		throw new ErrorBadRequest("Invalid value or quantity")
 	}
 
+
+
 	// Check if the product is already on the sale
-	const productsOnSaleExists = await prisma.productsOnSales.findMany({
+	const productsOnSaleExists = await prisma.productsOnSales.findUnique({
 		where: {
-			productId: {
-				in: products.map((product) => product.productId)
-			},
-			saleId
+			productId_saleId: {
+				productId: product.productId,
+				saleId
+			}
 		},
 		include: {
 			product: true
 		}
 	});
 
-	productsOnSaleExists.forEach((productsOnSaleExists) => {
-		const product = products.find((product) => product.productId === productsOnSaleExists.productId);
-		if (product) {
-			throw new ErrorBadRequest(`Product ${productsOnSaleExists.product.name} is already on the supply`);
-		}
-	});
+	if (productsOnSaleExists) {
+		throw new ErrorBadRequest(`Product ${productsOnSaleExists.product.name} is already on the sale`);
+	}
 
 	// Calculate the total cost of the sale
-	const totalCost = products.reduce((acc, product) => {
-		return acc + (product.unitCost * product.quantity);
-	}, 0);
+	const totalCost = oldProduct.price * product.quantity;
 
 
 
-	const [createdProducts] = await prisma.$transaction([
-		//  Insert the products on the sale
-		prisma.productsOnSales.createMany({
-			data: products.map((product) => {
-				return {
-					saleId,
-					productId: product.productId,
-					unitCost: product.unitCost,
-					quantity: product.quantity
-				}
-			})
-		}),
-
+	const [_, __, createdProducts] = await prisma.$transaction([
 		// Update the total cost of the sale
 		prisma.sale.update({
 			where: { id: saleId },
@@ -136,16 +124,28 @@ export async function insertProductsOnSale(saleId: string, products: ProductsOnS
 		}),
 
 		// Decrease the quantity of the products
-		...products.map((product) => {
-			return prisma.product.update({
-				where: { id: product.productId },
-				data: {
-					stock: {
-						decrement: product.quantity
-					}
+		prisma.product.update({
+			where: { id: product.productId },
+			data: {
+				stock: {
+					decrement: product.quantity
 				}
-			})
-		})
+			}
+		}),
+
+		//  Insert the products on the sale
+		prisma.productsOnSales.create({
+			data: {
+				...product,
+				saleId,
+				unitCost: oldProduct.price,
+
+			},
+			include: {
+				product: true,
+				sale: true
+			}
+		}),
 	]);
 
 	if (!createdProducts) {
@@ -160,7 +160,6 @@ export async function insertProductsOnSale(saleId: string, products: ProductsOnS
 export async function updateProductsOnSale(saleId: string, productId: string, data: ProductsOnSales) {
 	// Validate if the sale exists
 	const oldSale = await checkIfSaleExist(saleId);
-
 	// Validate if the product exists
 	const oldProduct = await checkIfProductExists(productId);
 
@@ -176,31 +175,32 @@ export async function updateProductsOnSale(saleId: string, productId: string, da
 		throw new ErrorNotFound("Product on sale not found");
 	}
 
-	// Check the cost and quantity of the product
-	if (data.unitCost <= 0 || data.quantity <= 0) {
-		throw new ErrorBadRequest("Invalid value or quantity");
+	// Cast the unitCost and quantity to number
+	if (data.unitCost) {
+		data.unitCost = Number(data.unitCost);
 	}
 
+	if (data.quantity) {
+		data.quantity = Number(data.quantity);
+	}
+
+	// Check the cost and quantity of the product
+	if (data.unitCost && data.unitCost <= 0 || data.quantity && data.quantity <= 0) {
+		throw new ErrorBadRequest("Invalid value or quantity");
+	}
 	// Check if almost one field is being updated
 	if (!data.unitCost && !data.quantity) {
 		throw new ErrorBadRequest("At least one field must be updated");
 	}
 
-
 	// Invetory the quantity of the product
 	const quantityDiference = data.quantity - oldProductOnSale.quantity;
 
-	// Calculate the new Stck of the product
+	// Calculate the new Stock of the product
 	const newStock = oldProduct.stock - quantityDiference
 
-	// Check if the quantity of the products is enough
-	if (newStock < 0) {
-		throw new ErrorBadRequest(`quantity of the product ${oldProduct.name} is not enough`)
-	}
-
-
 	// Get the diference between the old and the new cost
-	const diferenceCost = (data.unitCost * data.quantity) - oldSale.totalCost;
+	const totalCostDiference = (data.unitCost * data.quantity) - (oldProductOnSale.unitCost * oldProductOnSale.quantity);
 
 	// Update the product on the sale, the total cost of the sale and the quantity of the product in stock
 	const [_, __, updatedProduct] = await prisma.$transaction([
@@ -211,7 +211,7 @@ export async function updateProductsOnSale(saleId: string, productId: string, da
 		prisma.sale.update({
 			where: { id: saleId },
 			data: {
-				totalCost: oldSale.totalCost + diferenceCost
+				totalCost: oldSale.totalCost + totalCostDiference
 			}
 		}),
 
@@ -245,20 +245,56 @@ export async function updateProductsOnSale(saleId: string, productId: string, da
 	return updatedProduct;
 }
 
-
 // Delete products on the sale
 export async function deleteProductsOnSale(saleId: string, productId: string) {
 	await checkIfSaleExist(saleId);
 	await checkIfProductExists(productId);
 
-	// Delete the product on the sale
-	const deletedProduct = await prisma.productsOnSales.delete({
+	const oldProductOnSale = await prisma.productsOnSales.findUnique({
 		where: {
 			productId_saleId: {
 				productId, saleId
 			}
 		}
 	});
+
+	if (!oldProductOnSale) {
+		throw new ErrorNotFound("Product on sale not found");
+	}
+
+	// Transaction to delete the product on the sale and update the total cost of the sale
+	const [_, __, deletedProduct] = await prisma.$transaction([
+		// Update the total cost of the sale
+		prisma.sale.update({
+			where: { id: saleId },
+			data: {
+				totalCost: {
+					decrement: oldProductOnSale.unitCost * oldProductOnSale.quantity
+				}
+			}
+		}),
+
+		// Increase the quantity of the product
+		prisma.product.update({
+			where: { id: productId },
+			data: {
+				stock: {
+					increment: oldProductOnSale.quantity
+				}
+			}
+		}),
+
+		// Delete the product on the sale
+		prisma.productsOnSales.delete({
+			where: {
+				productId_saleId: {
+					productId, saleId
+				}
+			}
+		}),
+	])
+
+
 
 	if (!deletedProduct) {
 		throw new ErrorBadRequest("Product on sale not deleted");

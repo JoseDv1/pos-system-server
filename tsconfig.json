@@ -4,6 +4,7 @@
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
     "baseUrl": ".",
     "paths": {
       "@/*": [

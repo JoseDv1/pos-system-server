@@ -1,4 +1,4 @@
-FROM node:lts-slim 
+FROM node:21-slim
 
 # Create app directory
 WORKDIR /server
@@ -9,14 +9,19 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
+
 # Bundle app source
 COPY . .
 
-ENV DATABASE_URL=postgres://postgres:possystem1001446301!@db:5432/pos_system_db
+# Generate Prisma clientc
+RUN npx prisma generate
+
+# Set environment variables
+ENV DATABASE_URL=postgres://postgres:possystem1001446301!@localhost:5432/pos_system_db
 
 # Expose port
 EXPOSE 3000
 
 # Start the app
-RUN npm run start
+CMD ["npm", "run", "start"]
 

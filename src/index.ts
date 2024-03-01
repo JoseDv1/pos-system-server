@@ -42,10 +42,8 @@ app.on(['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], '*', (ctx: Context)
 // Error Handler
 app.onError(handleError)
 
-
 // ---- Server ----
 console.log(`Server running on http://localhost:${port}`)
-
 
 serve(
   {

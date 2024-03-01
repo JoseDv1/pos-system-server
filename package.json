@@ -1,7 +1,8 @@
 {
 	"type": "module",
 	"scripts": {
-		"start": "tsx src/index.ts",
+		"push:db": "prisma db push",
+		"start": "npm run push:db && tsx src/index.ts",
 		"dev": "tsx watch src/index.ts"
 	},
 	"dependencies": {

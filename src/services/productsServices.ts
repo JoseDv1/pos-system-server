@@ -18,32 +18,16 @@ async function checkIfProductExists(productId: string) {
 	return product;
 }
 
-export async function findProducts({ category }: {
-	category: string;
-}) {
+export async function findProducts() {
 
 	const products: Array<Product> = await prisma.product.findMany({
 		include: {
-			category: Boolean(category)
+			category: true
 		}
 	});
 
 	if (!products) {
 		throw new ErrorNotFound("Products not found");
-	}
-
-	return products;
-}
-
-export async function findUncategorizedProducts() {
-	const products: Array<Product> = await prisma.product.findMany({
-		where: {
-			categoryId: null
-		}
-	});
-
-	if (!products) {
-		throw new ErrorNotFound("Uncategorized products not found");
 	}
 
 	return products;

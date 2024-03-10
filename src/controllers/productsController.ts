@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { deleteProductById, findProducts, findUncategorizedProducts, insertProduct, updateProductById } from "@/services/productsServices";
+import { deleteProductById, findProducts, insertProduct, updateProductById } from "@/services/productsServices";
 import { Product } from "@prisma/client";
 import { Context } from "hono";
 
@@ -10,23 +10,9 @@ import { Context } from "hono";
  * @returns return all the products from the database
  */
 export async function getProducts(c: Context) {
-	const { category } = c.req.query();
-
-	// Get all uncategorized products from the database if the category is null
-	if (category === "null") {
-
-		// Get all uncategories products from the database
-		const products: Array<Product> = await findUncategorizedProducts();
-
-		// Return all the products
-		return c.json(products);
-
-	}
 
 	// Get all products from the database
-	const products = await findProducts({
-		category
-	});
+	const products = await findProducts();
 
 	// Return all the products
 	return c.json(products);

@@ -3,7 +3,7 @@
 - [ ] Add all JSdoc to all functions
   - [ ] Services
   - [x] Controllers
-  - [ ] Routes
+  - [x] Routes
 - [ ] Add Zod Runtime Validator to all models
   - [ ] Clients
   - [ ] Products

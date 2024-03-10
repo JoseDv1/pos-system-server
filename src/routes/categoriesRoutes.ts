@@ -7,10 +7,11 @@ import { createSortMiddleware } from "@/middlewares/createSortMiddleware";
 import { Hono } from "hono";
 
 
+
 export const categoriesRouter = new Hono();
 
+// Get all categories 
 categoriesRouter.get("/", getCategories);
-
 // Get categrory by id
 categoriesRouter.get("/:id", getCategoryById)
 // Create a new category

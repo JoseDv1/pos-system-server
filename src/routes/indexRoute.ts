@@ -13,15 +13,28 @@ import { productsOnSaleRouter } from '@/routes/productsOnSaleRouter'
 // Router
 export const apiRoutes = new Hono()
 
-apiRoutes.route('/categories', categoriesRouter) // ✅
-apiRoutes.route('/products', productsRouter) // ✅
-apiRoutes.route('/providers', providerRouter) // ✅ 
-apiRoutes.route('/clients', clientsRouter) // ✅
+// ----- Routes ----- 
 
-// Products on sale routes
-apiRoutes.route('/sales', salesRouter) // ✅
-apiRoutes.route('/sales/:saleId/products', productsOnSaleRouter) // TODO: Test this route
+// Categories
+apiRoutes.route('/categories', categoriesRouter)
 
-// Supply routes
-apiRoutes.route('/supplies', suppliesRouter) // ✅
-apiRoutes.route('/supplies/:supplyId/products', productsOnSupplyRouter) // TODO: Test this route
+// Products
+apiRoutes.route('/products', productsRouter)
+
+// Providers 
+apiRoutes.route('/providers', providerRouter)
+
+// Clients
+apiRoutes.route('/clients', clientsRouter)
+
+// Sales
+apiRoutes.route('/sales', salesRouter)
+
+// Products on sale
+apiRoutes.route('/sales/:saleId/products', productsOnSaleRouter)
+
+// Supplies
+apiRoutes.route('/supplies', suppliesRouter)
+
+// Products on supply
+apiRoutes.route('/supplies/:supplyId/products', productsOnSupplyRouter) 

@@ -1,13 +1,19 @@
 import { createProvider, deleteProvider, getProviderById, getProviders, updateProvider } from "@/controllers/providersController";
-import { prisma } from "@/lib/prisma";
-import { createSortMiddleware } from "@/middlewares/createSortMiddleware";
-import type { Prisma, Provider } from "@prisma/client";
 import { Hono } from "hono";
 
 export const providerRouter = new Hono();
 
-providerRouter.get("/", createSortMiddleware<Prisma.ProviderDelegate, Provider>(prisma.provider, "name"), getProviders);
+// Get all providers
+providerRouter.get("/", getProviders);
+
+// Get provider by id
 providerRouter.get("/:id", getProviderById);
+
+// Create a new provider
 providerRouter.post("/", createProvider);
+
+// Update a provider
 providerRouter.put("/:id", updateProvider);
+
+// Delete a provider
 providerRouter.delete("/:id", deleteProvider);

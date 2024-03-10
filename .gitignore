@@ -9,3 +9,4 @@ pnpm-lock.yaml
 
 # Build 
 dist
+bun.lockb

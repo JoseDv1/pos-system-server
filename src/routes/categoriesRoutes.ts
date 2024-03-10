@@ -3,19 +3,14 @@ import { createCategory, deleteCategory, getCategories, putCategory, getCategory
 // Import middlewares
 import { createSortMiddleware } from "@/middlewares/createSortMiddleware";
 
-
-// Import types
-import type { Category, Prisma } from "@prisma/client";
-
 // Import dependencies
 import { Hono } from "hono";
-import { prisma } from "@/lib/prisma";
 
 
 export const categoriesRouter = new Hono();
 
-// get all categories
-categoriesRouter.get("/", createSortMiddleware<Prisma.CategoryDelegate, Category>(prisma.category, "name"), getCategories);
+categoriesRouter.get("/", getCategories);
+
 // Get categrory by id
 categoriesRouter.get("/:id", getCategoryById)
 // Create a new category

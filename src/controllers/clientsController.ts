@@ -3,7 +3,6 @@ import type { Context } from "hono";
 import type { Client } from "@prisma/client";
 import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
 
-
 /**
  * Get Clients Controller function that returns all the clients from the database.
  * @param ctx 

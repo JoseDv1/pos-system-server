@@ -161,4 +161,3 @@ export async function deleteProvider(ctx: Context) {
 	// Return the deleted provider
 	return ctx.json(providerExists);
 }
-

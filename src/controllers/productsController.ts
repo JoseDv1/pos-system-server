@@ -18,6 +18,11 @@ export async function getProducts(c: Context) {
 	return c.json(products);
 }
 
+/**
+ *  Get Product by ID Controller function that returns a product from the database by its ID.
+ * @param c 
+ * @returns 
+ */
 export async function getProductById(c: Context) {
 	// Get the id from the request parameters
 	const { id } = c.req.param();

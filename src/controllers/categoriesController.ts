@@ -22,7 +22,11 @@ export async function getCategories(c: Context) {
 	return c.json(categories);
 }
 
-
+/**
+ * Get Category by ID Controller function that returns a category from the database by its ID.
+ * @param c Context parameter from Hono
+ * @returns return the category from the database by its ID
+ */
 export async function getCategoryById(c: Context) {
 	// Get the id from the request parameters
 	const { id } = c.req.param();
@@ -51,7 +55,6 @@ export async function createCategory(c: Context) {
 	// Response with the created category
 	return c.json(category, 201);
 }
-
 
 /**
  * Get Category Controller function that extract the id from the request parameters and return the category from the database.

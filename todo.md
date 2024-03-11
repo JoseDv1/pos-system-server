@@ -7,6 +7,8 @@
   - [x] Routes
 
 - [ ] Add a services to sales to mark as paid by the client
+- [ ] Add a notes field to sales to add notes to the sale
+- [ ] Test to refactor the services to Classes
 
 - [ ] Add Zod Runtime Validator to all models
   - [ ] Clients

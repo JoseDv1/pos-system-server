@@ -4,7 +4,11 @@ import { Product } from "@prisma/client";
 
 
 
-
+/**
+ * Function to check if a product exists in the database by its id
+ * @param productId 
+ * @returns the product if it exists
+ */
 async function checkIfProductExists(productId: string) {
 	// Validate if the product exists
 	const product = await prisma.product.findUnique({
@@ -18,6 +22,10 @@ async function checkIfProductExists(productId: string) {
 	return product;
 }
 
+/**
+ * Function to get all products from the database including the category
+ * @returns an array of products from the database
+ */
 export async function findProducts() {
 
 	const products: Array<Product> = await prisma.product.findMany({
@@ -33,11 +41,22 @@ export async function findProducts() {
 	return products;
 }
 
+/**
+ * Function to get a product from the database by its id including the category
+ * @param productId 
+ * @returns 
+ */
 export async function findProduct(productId: string) {
+	// TODO: This work but it is not the best way to do it
 	const product = await checkIfProductExists(productId);
 	return product;
 }
 
+/**
+ * Function to create a new product in the database 
+ * @param data Product data
+ * @returns the new product created
+ */
 export async function insertProduct(data: Product) {
 	const { name, categoryId, price, stock } = data;
 
@@ -84,6 +103,12 @@ export async function insertProduct(data: Product) {
 	return product;
 }
 
+/**
+ * Function to update a product in the database by its id
+ * @param productId 
+ * @param data 
+ * @returns the updated product
+ */
 export async function updateProductById(productId: string, data: Product) {
 	const { name, price, stock, categoryId } = data;
 
@@ -131,6 +156,11 @@ export async function updateProductById(productId: string, data: Product) {
 	return updatedProduct;
 }
 
+/**
+ * Function to delete a product in the database by its id
+ * @param productId 
+ * @returns the deleted product
+ */
 export async function deleteProductById(productId: string) {
 	// Check if the product exists
 	const product = await checkIfProductExists(productId);

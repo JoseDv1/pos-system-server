@@ -2,6 +2,10 @@ import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
 import { prisma } from "@/lib/prisma";
 import { Category } from "@prisma/client";
 
+
+/**
+ * Validation Function to check if the category exists in the database by its id and return the category
+ */
 async function checkIfCategoryExists(categoryId: string) {
 	// Validate if the category exists
 	const category = await prisma.category.findUnique({
@@ -15,6 +19,11 @@ async function checkIfCategoryExists(categoryId: string) {
 	return category;
 }
 
+/**
+ *  Function to get all categories from the database 
+ * @param products if true, it will include all the products of each category
+ * @returns an array of categories with or without the products
+ */
 export async function findCategories(products: string | undefined) {
 
 	// Get the categories from the database
@@ -31,6 +40,12 @@ export async function findCategories(products: string | undefined) {
 	return categories;
 }
 
+/**
+ * Function to get a category by its id from the database
+ * @param categoryId 
+ * @param products 
+ * @returns a category 
+ */
 export async function findCategoryById(categoryId: string, products: string | undefined) {
 	const category = await prisma.category.findUnique({
 		where: { id: categoryId },
@@ -46,6 +61,11 @@ export async function findCategoryById(categoryId: string, products: string | un
 	return category;
 }
 
+/**
+ * Function to insert a new category in the database
+ * @param data A category object with the name and optional description
+ * @returns Created category in the db
+ */
 export async function insertCategory(data: Category) {
 
 	// Validate the fields
@@ -71,6 +91,12 @@ export async function insertCategory(data: Category) {
 	return category;
 }
 
+/**
+ * Function to update a category by its id in the database
+ * @param categoryId 
+ * @param data A category object with the data to update
+ * @returns Updated category in the db
+ */
 export async function updateCategory(categoryId: string, data: Category) {
 	await checkIfCategoryExists(categoryId);
 
@@ -87,6 +113,11 @@ export async function updateCategory(categoryId: string, data: Category) {
 	return updatedCategory;
 }
 
+/**
+ * Function to delete a category by its id from the database
+ * @param categoryId 
+ * @returns Deleted category
+ */
 export async function deleteCategoryById(categoryId: string) {
 	await checkIfCategoryExists(categoryId);
 

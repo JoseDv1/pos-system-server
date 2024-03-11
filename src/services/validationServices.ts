@@ -1,9 +1,13 @@
 import { ErrorNotFound } from "@/errors/errors";
 import { prisma } from "@/lib/prisma";
 
-// ------------------- Validations -------------------
 
-// Supply
+
+/**
+ * Function to check if a supply exists in the database by its id
+ * @param supplyId 
+ * @returns the supply if it exists
+ */
 export async function checkIfSupplyExists(supplyId: string) {
 	// Validate if the supply exists
 	const supply = await prisma.supply.findUnique({
@@ -17,7 +21,11 @@ export async function checkIfSupplyExists(supplyId: string) {
 	return supply;
 }
 
-// Product
+/**
+ * Function to check if a product exists in the database by its id
+ * @param productId 
+ * @returns the product if it exists
+ */
 export async function checkIfProductExists(productId: string) {
 	// Validate if the product exists
 	const product = await prisma.product.findUnique({
@@ -31,7 +39,11 @@ export async function checkIfProductExists(productId: string) {
 	return product;
 }
 
-// Sales 
+/**
+ * Function to check if a sale exists in the database by its id
+ * @param saleId 
+ * @returns the sale if it exists
+ */
 export async function checkIfSaleExist(saleId: string) {
 	// Validate if the sale exists
 	const sale = await prisma.sale.findUnique({

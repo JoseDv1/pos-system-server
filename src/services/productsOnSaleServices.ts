@@ -5,12 +5,16 @@ import type { ProductsOnSales } from "@prisma/client";
 
 
 
-// ------------------- Services -------------------
-
-// Get all products on the sale
+/** 
+ * Function to get all products on a sale from the database
+ * @param saleId 
+ * @returns an array of products on the sale with the sale and the client
+ */
 export async function findProductsOnSale(saleId: string) {
 	// Validate if the sale exists
 	await checkIfSaleExist(saleId);
+
+	// TODO: Refactor this to Query first the productsOnSale Table and not the sale Table
 
 	// Get all products on the sale from the database
 	const productsOnSale = await prisma.sale.findUnique({
@@ -32,13 +36,20 @@ export async function findProductsOnSale(saleId: string) {
 	return productsOnSale;
 }
 
-// Get a product on the sale
+/**
+ * Function to get a product on a sale from the database by ProductId and SaleId
+ * @param saleId 
+ * @param productId 
+ * @returns a Specific product on the sale with the sale and the client
+ */
 export async function findProductsOnSaleByProductId(saleId: string, productId: string) {
 	// Validate if the sale exists
 	await checkIfSaleExist(saleId);
 
 	// Validate if the product exists
 	await checkIfProductExists(productId);
+
+	// TODO: Refactor this to Query first the productsOnSale Table and not the sale Table
 
 	// Get the product on the sale from the database
 	const productOnSale = await prisma.sale.findFirst(
@@ -66,7 +77,12 @@ export async function findProductsOnSaleByProductId(saleId: string, productId: s
 	return productOnSale;
 }
 
-// Insert products on the sale
+/**
+ * Function to insert products on a sale to the database also update the total cost of the sale and the quantity of the product in stock 
+ * @param saleId 
+ * @param product 
+ * @returns the product on the sale with the sale and the product
+ */
 export async function insertProductsOnSale(saleId: string, product: ProductsOnSales) {
 
 	if (product.unitCost) {
@@ -156,7 +172,13 @@ export async function insertProductsOnSale(saleId: string, product: ProductsOnSa
 
 }
 
-// Update products on the sale
+/**
+ * Function to update products on a sale in the database also update the total cost of the sale and the quantity of the product in stock
+ * @param saleId 
+ * @param productId 
+ * @param data A product on sale object with the data to update
+ * @returns the product on the sale with the sale and the product
+ */
 export async function updateProductsOnSale(saleId: string, productId: string, data: ProductsOnSales) {
 	// Validate if the sale exists
 	const oldSale = await checkIfSaleExist(saleId);
@@ -245,7 +267,12 @@ export async function updateProductsOnSale(saleId: string, productId: string, da
 	return updatedProduct;
 }
 
-// Delete products on the sale
+/**
+ * Function to delete a product on a sale from the database also update the total cost of the sale and the quantity of the product in stock
+ * @param saleId 
+ * @param productId 
+ * @returns the product on the sale with the sale and the product
+ */
 export async function deleteProductsOnSale(saleId: string, productId: string) {
 	await checkIfSaleExist(saleId);
 	await checkIfProductExists(productId);

@@ -2,12 +2,14 @@ import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
 import { prisma } from "@/lib/prisma";
 import { ProductsOnSupply } from "@prisma/client";
 import { checkIfSupplyExists, checkIfProductExists } from "./validationServices";
-import { findProduct } from "@/services/productsServices"
 
 
 
-
-// ------------------- Services -------------------
+/**
+ * Function to get all products on a supply from the database
+ * @param supplyId 
+ * @returns an array of products on the supply with the supply and the provider
+ */
 export async function findProductsOnSupply(supplyId: string) {
 	// Validate if the supply exists
 	const supply = await checkIfSupplyExists(supplyId);
@@ -31,6 +33,12 @@ export async function findProductsOnSupply(supplyId: string) {
 	return productsOnSupply;
 }
 
+/**
+ * Function to get a product on a supply from the database by ProductId and SupplyId
+ * @param supplyId 
+ * @param productId 
+ * @returns a Specific product on the supply with the supply and the provider
+ */
 export async function findProductOnSupply(supplyId: string, productId: string) {
 
 	// Validate if the supply exists
@@ -57,7 +65,15 @@ export async function findProductOnSupply(supplyId: string, productId: string) {
 	return productOnSupply;
 }
 
+/**
+ * Function to insert a product on a supply in the database by SupplyId
+ * @param supplyId 
+ * @param products 
+ * @returns 
+ */
 export async function insertProductsOnSupply(supplyId: string, products: ProductsOnSupply[]) {
+	// TODO: Refactor this function receive a single product and not an array of products
+
 	// Check if the supply exists
 	const supply = await checkIfSupplyExists(supplyId);
 
@@ -153,6 +169,14 @@ export async function insertProductsOnSupply(supplyId: string, products: Product
 	return transaction[transaction.length - 1];
 }
 
+/**
+ * Function to update a product on a supply in the database by SupplyId and ProductId
+ * also update the total cost of the supply and the quantity of the product in stock
+ * @param supplyId 
+ * @param productId 
+ * @param data 
+ * @returns the product on the supply with the supply and the product
+ */
 export async function updateProductOnSupply(supplyId: string, productId: string, data: ProductsOnSupply) {
 
 	// Check if almost one field is being updated
@@ -221,6 +245,13 @@ export async function updateProductOnSupply(supplyId: string, productId: string,
 	return updatedProductOnSupply;
 }
 
+/**
+ * Function to remove a product on a supply in the database by SupplyId and ProductId
+ * also update the total cost of the supply and the quantity of the product in stock
+ * @param supplyId 
+ * @param productId 
+ * @returns 
+ */
 export async function removeProductOnSupply(
 	supplyId: string,
 	productId: string

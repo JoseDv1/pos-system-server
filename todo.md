@@ -1,7 +1,7 @@
 # To-do
 
-- [ ] Add all JSdoc to all functions
-  - [ ] Services
+- [x] Add all JSdoc to all functions
+  - [x] Services
   - [x] Controllers
   - [x] Routes
 - [ ] Add Zod Runtime Validator to all models

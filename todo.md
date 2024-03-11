@@ -1,9 +1,13 @@
 # To-do
 
 - [x] Add all JSdoc to all functions
+
   - [x] Services
   - [x] Controllers
   - [x] Routes
+
+- [ ] Add a services to sales to mark as paid by the client
+
 - [ ] Add Zod Runtime Validator to all models
   - [ ] Clients
   - [ ] Products

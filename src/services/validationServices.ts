@@ -56,3 +56,16 @@ export async function checkIfSaleExist(saleId: string) {
 
 	return sale;
 }
+
+export async function checkIfClientExist(clientId: string) {
+	// Validate if the client exists
+	const client = await prisma.client.findUnique({
+		where: { id: clientId }
+	});
+
+	if (!client) {
+		throw new ErrorNotFound("Client not found 404");
+	}
+
+	return client;
+}

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createSale, deleteSale, getSaleById, getSales, updateSale } from "@/controllers/salesController"
+import { createSale, deleteSale, getSaleById, getSales, updateSale, markAllSalesAsPaidByClientController } from "@/controllers/salesController"
 
 
 export const salesRouter = new Hono();
@@ -13,8 +13,12 @@ salesRouter.get("/:id", getSaleById);
 // Create a new sale
 salesRouter.post("/", createSale);
 
-// Update a sale
+// Update a sale 
 salesRouter.put("/:id", updateSale);
+
+// Update Status By Client
+salesRouter.put("/paid/:clientId", markAllSalesAsPaidByClientController);
+
 
 // Delete a sale
 salesRouter.delete("/:id", deleteSale);

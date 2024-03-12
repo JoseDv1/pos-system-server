@@ -2,6 +2,7 @@ import { Context } from "hono";
 import { prisma } from "@/lib/prisma";
 import { $Enums, type Sale } from "@prisma/client";
 import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
+import { markAllSalesAsPaidByClientService } from "@/services/salesService";
 
 /**
  * Get Sales Controller function that returns all the sales from the database.
@@ -199,4 +200,14 @@ export async function deleteSale(ctx: Context) {
 
 	// Return the deleted sale
 	return ctx.json(sale);
+}
+
+export async function markAllSalesAsPaidByClientController(ctx: Context) {
+	const { clientId } = ctx.req.param();
+
+	// Call the service 
+	const updatedSales = await markAllSalesAsPaidByClientService(clientId);
+
+	// Return the updated sales
+	return ctx.json(updatedSales); // this return a number of sales updated not the sales
 }

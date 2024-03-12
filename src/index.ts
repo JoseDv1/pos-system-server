@@ -35,7 +35,7 @@ app.notFound((ctx: Context) => {
 })
 
 app.on(['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], '*', (ctx: Context) => {
-  return ctx.text('Method not allowed', 405)
+  return ctx.text(`Method not allowed, ${ctx.req.url}`, 405)
 })
 
 

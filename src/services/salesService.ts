@@ -1,7 +1,7 @@
 
 import { ErrorBadRequest } from "@/errors/errors";
 import { prisma } from "@/lib/prisma";
-import { checkIfClientExist } from "./validationServices";
+import { checkIfClientExist, checkIfSaleExist } from "./validationServices";
 
 
 export const markAllSalesAsPaidByClientService = async (clientId: string) => {
@@ -26,4 +26,37 @@ export const markAllSalesAsPaidByClientService = async (clientId: string) => {
 	}
 
 	return updatedSales;
+}
+
+export const markSaleAsPaidService = async (id: string) => {
+	await checkIfSaleExist(id);
+
+	// Update the sale
+	const payedSale = await prisma.sale.update({
+		where: {
+			id: id
+		},
+		data: {
+			status: "PAYED"
+		}
+	});
+
+	return payedSale;
+
+}
+
+export const markSaleAsPendingService = async (id: string) => {
+	await checkIfSaleExist(id);
+
+	// Update the sale
+	const pendingSale = await prisma.sale.update({
+		where: {
+			id: id
+		},
+		data: {
+			status: "PENDING"
+		}
+	});
+
+	return pendingSale;
 }

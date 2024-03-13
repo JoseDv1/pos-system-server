@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createSale, deleteSale, getSaleById, getSales, updateSale, markAllSalesAsPaidByClientController } from "@/controllers/salesController"
+import { createSale, deleteSale, getSaleById, getSales, updateSale, markAllSalesAsPaidByClientController, markSaleAsPaidController, markSaleAsPendingController } from "@/controllers/salesController"
 
 
 export const salesRouter = new Hono();
@@ -15,6 +15,10 @@ salesRouter.post("/", createSale);
 
 // Update a sale 
 salesRouter.put("/:id", updateSale);
+salesRouter.put("/:id/paid", markSaleAsPaidController);
+salesRouter.put("/:id/pending", markSaleAsPendingController);
+
+
 
 // Update Status By Client
 salesRouter.put("/paid/:clientId", markAllSalesAsPaidByClientController);

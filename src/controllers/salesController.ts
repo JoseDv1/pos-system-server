@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { prisma } from "@/lib/prisma";
 import { $Enums, type Sale } from "@prisma/client";
 import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
-import { markAllSalesAsPaidByClientService } from "@/services/salesService";
+import { markAllSalesAsPaidByClientService, markSaleAsPaidService, markSaleAsPendingService } from "@/services/salesService";
 
 /**
  * Get Sales Controller function that returns all the sales from the database.
@@ -202,6 +202,13 @@ export async function deleteSale(ctx: Context) {
 	return ctx.json(sale);
 }
 
+// --- Not CRUD operations ---
+
+/**
+ * Mark Sale As Paid Controller function that marks a sale as paid by client in the database.
+ * @param ctx 
+ * @returns The Number of sales updated
+ */
 export async function markAllSalesAsPaidByClientController(ctx: Context) {
 	const { clientId } = ctx.req.param();
 
@@ -210,4 +217,33 @@ export async function markAllSalesAsPaidByClientController(ctx: Context) {
 
 	// Return the updated sales
 	return ctx.json(updatedSales); // this return a number of sales updated not the sales
+}
+
+/**
+ * Mark Sale As Paid Controller function that marks a sale as paid in the database.
+ * @param ctx 
+ * @returns The updated sale
+ */
+export async function markSaleAsPaidController(ctx: Context) {
+	const { id } = ctx.req.param();
+
+	// Call the service
+	const updatedSale = await markSaleAsPaidService(id);
+	// Return the updated sale
+	return ctx.json(updatedSale);
+}
+
+/**
+ * Mark Sale As Pending Controller function that marks a sale as pending in the database.
+ * @param ctx 
+ * @returns The updated sale
+ */
+export async function markSaleAsPendingController(ctx: Context) {
+	const { id } = ctx.req.param();
+
+	// Call the service
+	const sale = await markSaleAsPendingService(id);
+
+	// Return the updated sale
+	return ctx.json(sale);
 }

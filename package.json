@@ -1,16 +1,16 @@
 {
-	"type": "module",
-	"scripts": {
-		"push:db": "prisma db push",
-		"start": "bun run push:db && bun src/index.ts",
-		"dev": "bun watch src/index.ts"
-	},
-	"dependencies": {
-		"@prisma/client": "5.11.0",
-		"hono": "4.1.0"
-	},
-	"devDependencies": {
-		"@types/bun": "1.0.8",
-		"prisma": "5.11.0"
-	}
+  "type": "module",
+  "scripts": {
+    "push:db": "prisma db push",
+    "start": "bun run push:db && bun src/index.ts",
+    "dev": "bun watch src/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "5.11.0",
+    "hono": "4.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "1.0.8",
+    "prisma": "5.11.0"
+  }
 }

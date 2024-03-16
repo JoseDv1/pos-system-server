@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
+    // Best practices
     "strict": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    // Enable relative path imports with baseUrl
     "baseUrl": ".",
     "paths": {
       "@/*": [

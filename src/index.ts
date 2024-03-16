@@ -1,5 +1,4 @@
-import { serve } from '@hono/node-server'
-import { type Context, Hono, MiddlewareHandler } from 'hono'
+import { type Context, Hono } from 'hono'
 
 // Import Middlewares
 import { cors } from 'hono/cors'
@@ -45,9 +44,7 @@ app.onError(handleError)
 // ---- Server ----
 console.log(`Server running on http://localhost:${port}`)
 
-serve(
-  {
-    fetch: app.fetch,
-    port,
-  }
-)
+export default {
+  port: port,
+  fetch: app.fetch,
+} 

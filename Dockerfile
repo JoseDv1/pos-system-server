@@ -1,29 +1,39 @@
-FROM node:21-slim
-RUN apt-get update -y && apt-get install -y openssl
-
-
+FROM oven/bun:latest as base
 # Create app directory
-WORKDIR /server
 
-# Install app dependencies
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
+WORKDIR /usr/src/app
 
 
-# Bundle app source
+# --- Install dependencies ---- 
+# Install dependencies into temp directory this will cache them and speed up future builds
+FROM base as install 
+RUN mkdir -p /temp/dev
+COPY package.json bun.lockb /temp/dev/
+RUN cd /temp/dev && bun install --frozen-lockfile 
+
+# Install production dependencies
+RUN mkdir -p /temp/prod
+COPY package.json bun.lockb /temp/prod/
+RUN cd /temp/prod && bun install --frozen-lockfile --production
+
+
+# --- ""Build""" the app --- 
+FROM base AS relase
+COPY --from=install /temp/dev/node_modules node_modules
+COPY --from=install /temp/prod/node_modules node_modules
 COPY . .
 
-# Generate Prisma clientc
-RUN npx prisma generate
-
+# --- Build Steps---
+RUN apt-get update -y && apt-get install -y openssl
 # Set environment variables
 ENV DATABASE_URL=postgres://postgres:possystem1001446301!@localhost:5432/pos_system_db
+# Generate Prisma client
+RUN bunx prisma generate
 
+# --- Run The app ---
+USER bun 
 # Expose port
 EXPOSE 3000
-
 # Start the app
-CMD ["npm", "run", "start"]
+CMD ["bun", "run", "start"]
 

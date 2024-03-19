@@ -13,7 +13,7 @@ async function checkIfCategoryExists(categoryId: string) {
 	});
 
 	if (!category) {
-		throw new ErrorNotFound("Category not found 404");
+		throw new ErrorNotFound("Category not found");
 	}
 
 	return category;
@@ -24,12 +24,12 @@ async function checkIfCategoryExists(categoryId: string) {
  * @param products if true, it will include all the products of each category
  * @returns an array of categories with or without the products
  */
-export async function findCategories(products: string | undefined) {
+export async function findCategories() {
 
 	// Get the categories from the database
 	const categories: Array<Category> = await prisma.category.findMany({
 		include: {
-			products: Boolean(products),
+			products: true
 		},
 	});
 
@@ -46,11 +46,16 @@ export async function findCategories(products: string | undefined) {
  * @param products 
  * @returns a category 
  */
-export async function findCategoryById(categoryId: string, products: string | undefined) {
+export async function findCategoryById(categoryId: string) {
+
+	if (!categoryId) {
+		throw new ErrorBadRequest("Invalid input: id is required");
+	}
+
 	const category = await prisma.category.findUnique({
 		where: { id: categoryId },
 		include: {
-			products: Boolean(products),
+			products: true,
 		},
 	});
 
@@ -66,7 +71,7 @@ export async function findCategoryById(categoryId: string, products: string | un
  * @param data A category object with the name and optional description
  * @returns Created category in the db
  */
-export async function insertCategory(data: Category) {
+export async function insertCategory(data: Omit<Category, "id">) {
 
 	// Validate the fields
 	if (!data.name) {
@@ -97,12 +102,30 @@ export async function insertCategory(data: Category) {
  * @param data A category object with the data to update
  * @returns Updated category in the db
  */
-export async function updateCategory(categoryId: string, data: Category) {
+export async function updateCategory(categoryId: string, data: Omit<Category, "id">) {
+
+	if (!categoryId) {
+		throw new ErrorBadRequest("Invalid input: id is required");
+	}
+
 	await checkIfCategoryExists(categoryId);
 
 	// Check if almost one field is being updated
 	if (!data.name && !data.description) {
 		throw new ErrorBadRequest("Invalid input: at least one field is required");
+	}
+
+	if (!data.name) {
+		throw new ErrorBadRequest("Invalid input: name is required");
+	}
+
+	// Check if one category with the same name already exists
+	const existingCategory = await prisma.category.findFirst({
+		where: { name: data.name },
+	});
+
+	if (existingCategory && existingCategory.id !== categoryId) {
+		throw new ErrorBadRequest("Category already exists");
 	}
 
 	const updatedCategory = await prisma.category.update({
@@ -119,6 +142,10 @@ export async function updateCategory(categoryId: string, data: Category) {
  * @returns Deleted category
  */
 export async function deleteCategoryById(categoryId: string) {
+	if (!categoryId) {
+		throw new ErrorBadRequest("Invalid input: id is required");
+	}
+
 	await checkIfCategoryExists(categoryId);
 
 	const deletedCategory = await prisma.category.delete({

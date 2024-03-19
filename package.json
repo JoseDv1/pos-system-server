@@ -3,7 +3,8 @@
 	"scripts": {
 		"push:db": "prisma db push",
 		"start": "bun run push:db && bun src/index.ts",
-		"dev": "bun --hot src/index.ts"
+		"dev": "bun --hot src/index.ts",
+		"test": "bun test"
 	},
 	"dependencies": {
 		"@prisma/client": "5.11.0",

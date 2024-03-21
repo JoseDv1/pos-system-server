@@ -1,6 +1,6 @@
 import { ErrorBadRequest, ErrorNotFound } from "@/errors/errors";
 import { prisma } from "@/lib/prisma";
-import { Product } from "@prisma/client";
+import { Category, Product } from "@prisma/client";
 
 
 
@@ -28,7 +28,7 @@ async function checkIfProductExists(productId: string) {
  */
 export async function findProducts() {
 
-	const products: Array<Product> = await prisma.product.findMany({
+	const products = await prisma.product.findMany({
 		include: {
 			category: true
 		}
@@ -57,11 +57,11 @@ export async function findProduct(productId: string) {
  * @param data Product data
  * @returns the new product created
  */
-export async function insertProduct(data: Product) {
-	const { name, categoryId, price, stock } = data;
+export async function insertProduct(data: Omit<Product, "id" | "updatedAt" | "stock">) {
+	const { name, categoryId, price } = data;
 
 	// Validate the fields
-	if (!name || !categoryId || !price) {
+	if (!name || !categoryId || !price || price < 0 || name === "" || categoryId === "") {
 		throw new ErrorBadRequest("Name, category and price are required");
 	}
 
@@ -70,7 +70,6 @@ export async function insertProduct(data: Product) {
 		where: { name, categoryId },
 	});
 
-	// If the product already exists, return an error
 	if (existingProduct) {
 		throw new ErrorBadRequest("Product already exists");
 	}
@@ -88,7 +87,7 @@ export async function insertProduct(data: Product) {
 	// Create a new product in database
 	const product = await prisma.product.create({
 		data: {
-			name, categoryId, price, stock
+			name, categoryId, price,
 		},
 		include: {
 			category: {
@@ -109,7 +108,7 @@ export async function insertProduct(data: Product) {
  * @param data 
  * @returns the updated product
  */
-export async function updateProductById(productId: string, data: Product) {
+export async function updateProductById(productId: string, data: Omit<Product, "id" | "updatedAt">) {
 	const { name, price, stock, categoryId } = data;
 
 	// Check is almost one field is provided
@@ -163,7 +162,7 @@ export async function updateProductById(productId: string, data: Product) {
  */
 export async function deleteProductById(productId: string) {
 	// Check if the product exists
-	const product = await checkIfProductExists(productId);
+	await checkIfProductExists(productId);
 
 	// Delete the product in database
 	const deletedProduct = await prisma.product.delete({

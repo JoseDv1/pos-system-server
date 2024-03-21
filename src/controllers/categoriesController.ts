@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { deleteCategoryById, findCategories, findCategoryById, insertCategory, updateCategory } from "@/services/categoriesServices";
 import { Category } from "@prisma/client";
 import { Context } from "hono";
-
+import { zValidator } from "@hono/zod-validator";
 
 /**
  * Get Categories Controller function that returns all the categories from the database.
@@ -15,7 +15,7 @@ export async function getCategories(c: Context) {
 	const { products } = c.req.query();
 
 	// Get the categories from the database
-	const categories = await findCategories(products);
+	const categories = await findCategories();
 
 
 	// Return all the categories
@@ -33,7 +33,7 @@ export async function getCategoryById(c: Context) {
 	const { products } = c.req.query();
 
 	// Get the category from the database
-	const category = await findCategoryById(id, products);
+	const category = await findCategoryById(id);
 
 	// Return the category
 	return c.json(category);
@@ -46,8 +46,10 @@ export async function getCategoryById(c: Context) {
  * @returns return the created category or an error if the category already exists or the name is not provided
  */
 export async function createCategory(c: Context) {
-	// Get the name from the request body
-	const data: Category = await c.req.json();
+
+	// Get the name from the Validated request body
+	//@ts-expect-error
+	const data = c.req.valid('json');
 
 	// Create the category in the database
 	const category = await insertCategory(data);

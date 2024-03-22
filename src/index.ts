@@ -8,8 +8,7 @@ import { logger } from 'hono/logger'
 import { handleError } from '@/errors/errors'
 import { apiRoutes } from '@/routes/indexRoute'
 
-
-
+// Start Hono
 const app = new Hono()
 
 // ---- Config ----

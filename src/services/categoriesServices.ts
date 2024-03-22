@@ -73,11 +73,6 @@ export async function findCategoryById(categoryId: string) {
  */
 export async function insertCategory(data: Omit<Category, "id">) {
 
-	// Validate the fields
-	if (!data.name) {
-		throw new ErrorBadRequest("Invalid input: name is required");
-	}
-
 	// Check if the category already exists
 	const existingCategory = await prisma.category.findFirst({
 		where: { name: data.name },
@@ -87,7 +82,6 @@ export async function insertCategory(data: Omit<Category, "id">) {
 	if (existingCategory) {
 		throw new ErrorBadRequest("Category already exists");
 	}
-
 
 	const category = await prisma.category.create({
 		data,

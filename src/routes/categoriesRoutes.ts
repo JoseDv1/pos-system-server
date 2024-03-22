@@ -1,13 +1,10 @@
 // Import Controllers
 import { createCategory, deleteCategory, getCategories, putCategory, getCategoryById } from "@/controllers/categoriesController";
-import { createCategorySchema } from "@/schemas/categories.schema";
-import { zValidator } from "@hono/zod-validator";
+import { zValidorMiddleware } from "@/middlewares/zValidatorMiddleware";
+import { createCategorySchema, updateCategorySchema } from "@/schemas/categories.schema";
 
 // Import dependencies
 import { Hono } from "hono";
-
-
-
 export const categoriesRouter = new Hono();
 
 // Get all categories 
@@ -17,8 +14,8 @@ categoriesRouter.get("/:id", getCategoryById)
 
 
 // Create a new category
-categoriesRouter.post("/", zValidator("json", createCategorySchema), createCategory);
+categoriesRouter.post("/", zValidorMiddleware(createCategorySchema), createCategory);
 // Update a category
-categoriesRouter.put("/:id", putCategory);
+categoriesRouter.put("/:id", zValidorMiddleware(updateCategorySchema), putCategory);
 // Delete a category
 categoriesRouter.delete("/:id", deleteCategory); 

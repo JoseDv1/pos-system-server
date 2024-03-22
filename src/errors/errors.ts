@@ -1,5 +1,6 @@
 import { Context } from "hono";
 import { StatusCode } from "hono/utils/http-status";
+import { ZodError } from "zod";
 
 /**
  * Error NotFound class to handle 404 errors
@@ -53,6 +54,13 @@ export function handleError(error: Error, ctx: Context) {
 		return ctx.json({ error: error.message }, error.status);
 	}
 
-	console.error(error);
+	if (error instanceof ZodError) {
+		return ctx.json(
+			error.errors.map((err) => {
+				return { message: err.message, path: err.path.join(".") }
+			}),
+			400);
+	}
+
 	return ctx.json({ error: error.message }, 500);
 }

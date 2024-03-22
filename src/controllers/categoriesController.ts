@@ -1,8 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { deleteCategoryById, findCategories, findCategoryById, insertCategory, updateCategory } from "@/services/categoriesServices";
 import { Category } from "@prisma/client";
 import { Context } from "hono";
-import { zValidator } from "@hono/zod-validator";
 
 /**
  * Get Categories Controller function that returns all the categories from the database.
@@ -30,7 +28,6 @@ export async function getCategories(c: Context) {
 export async function getCategoryById(c: Context) {
 	// Get the id from the request parameters
 	const { id } = c.req.param();
-	const { products } = c.req.query();
 
 	// Get the category from the database
 	const category = await findCategoryById(id);
@@ -48,8 +45,7 @@ export async function getCategoryById(c: Context) {
 export async function createCategory(c: Context) {
 
 	// Get the name from the Validated request body
-	//@ts-expect-error
-	const data = c.req.valid('json');
+	const data = await c.req.json();
 
 	// Create the category in the database
 	const category = await insertCategory(data);
@@ -67,11 +63,11 @@ export async function putCategory(c: Context) {
 
 	// Get the id from the request parameters and the name and description from the request body
 	const { id } = c.req.param();
-	const data: Category = await c.req.json();
+
+	const data: Category = c.get("validatedData");
 
 	// Update the category in the database
 	const updatedCategory = await updateCategory(id, data);
-
 
 	// Response with the updated category
 	return c.json(updatedCategory);
@@ -84,8 +80,6 @@ export async function putCategory(c: Context) {
  */
 export async function deleteCategory(c: Context) {
 	const { id } = c.req.param();
-
 	const deletedCategory = await deleteCategoryById(id);
-
 	return c.json(deletedCategory);
 }

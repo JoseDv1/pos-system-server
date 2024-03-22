@@ -1,14 +1,15 @@
 import { z } from "zod"
 
-// Create category schema
-export const createCategorySchema = z.object({
-	name: z.string().min(1, "Invalid input: name is required"),
-	description: z.string().optional(),
+const categoryBaseSchema = z.object({
+	id: z.string(),
+	name: z.string().min(3, "Invalid input: name is required").max(30, "Invalid input: name is too long"),
+	description: z.string().min(3, "Invalid input: description is too short").optional()
 })
 
+
+// Create category schema
+export const createCategorySchema = categoryBaseSchema.omit({ id: true })
+
 // Update category schema
-export const updateCategorySchema = z.object({
-	name: z.string().optional(),
-	description: z.string().optional(),
-})
+export const updateCategorySchema = categoryBaseSchema.omit({ id: true }).partial()
 

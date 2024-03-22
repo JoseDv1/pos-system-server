@@ -2,6 +2,7 @@ import { prisma } from "@/utils/prisma";
 import type { Context } from "hono";
 import type { Client } from "@prisma/client";
 import { ErrorBadRequest, ErrorNotFound } from "@/utils/errors";
+import { deleteClientService, findClientById, findClients, insertClient, updateClientService } from "./clientsServices";
 
 /**
  * Get Clients Controller function that returns all the clients from the database.
@@ -9,19 +10,7 @@ import { ErrorBadRequest, ErrorNotFound } from "@/utils/errors";
  * @returns All the clients from the database
  */
 export async function getClients(ctx: Context) {
-	const { sales } = ctx.req.query();
-	const clients: Client[] = await prisma.client.findMany(
-		{
-			include: {
-				sales: Boolean(sales),
-			},
-		}
-	);
-
-	if (!clients) {
-		throw new ErrorNotFound("Clients not found");
-	}
-
+	const clients: Client[] = await findClients();
 	return ctx.json(clients);
 }
 
@@ -32,22 +21,7 @@ export async function getClients(ctx: Context) {
  */
 export async function getClientById(ctx: Context) {
 	const { id } = ctx.req.param();
-	const { sales } = ctx.req.query();
-	const client = await prisma.client.findUnique(
-		{
-			where: {
-				id: id,
-			},
-			include: {
-				sales: Boolean(sales),
-			},
-		}
-	);
-
-	if (!client) {
-		throw new ErrorNotFound("Client not found");
-	}
-
+	const client = await findClientById(id);
 	return ctx.json(client);
 }
 
@@ -58,29 +32,8 @@ export async function getClientById(ctx: Context) {
  */
 export async function createClient(ctx: Context) {
 	const body = await ctx.req.json();
-
-	// Validate if the requires fields are provided
-	if (!body.name) {
-		throw new ErrorBadRequest("Name are required");
-	}
-
-	// Validate if the client already exists
-	const clientExists = await prisma.client.findUnique({
-		where: {
-			name: body.name,
-		},
-	});
-
-	if (clientExists) {
-		throw new ErrorBadRequest("Client already exists");
-	}
-
-	// Create the client
-	const client = await prisma.client.create({
-		data: body,
-	});
-
-	return ctx.json(client);
+	const insertedClient = await insertClient(body);
+	return ctx.json(insertedClient, 201);
 }
 
 /**
@@ -90,33 +43,8 @@ export async function createClient(ctx: Context) {
  */
 export async function updateClient(ctx: Context) {
 	const { id } = ctx.req.param();
-	const body: Client = await ctx.req.json();
-
-	// Check if the client exists
-	const clientExists = await prisma.client.findUnique({
-		where: {
-			id: id,
-		},
-	});
-
-	if (!clientExists) {
-		throw new ErrorNotFound("Client not found");
-	}
-
-
-	// Validate if almost one field is provided
-	if (!body.name && !body.email && body.address) {
-		throw new ErrorBadRequest("At least one field is required");
-	}
-
-	// Update the client
-	const client = await prisma.client.update({
-		where: {
-			id: id,
-		},
-		data: body,
-	});
-
+	const body = await ctx.req.json();
+	const client = await updateClientService(id, body)
 	return ctx.json(client);
 }
 
@@ -127,24 +55,6 @@ export async function updateClient(ctx: Context) {
  */
 export async function deleteClient(ctx: Context) {
 	const { id } = ctx.req.param();
-
-	// Check if the client exists
-	const clientExists = await prisma.client.findUnique({
-		where: {
-			id: id,
-		},
-	});
-
-	if (!clientExists) {
-		throw new ErrorNotFound("Client not found");
-	}
-
-	// Delete the client
-	const client = await prisma.client.delete({
-		where: {
-			id: id,
-		},
-	});
-
+	const client = await deleteClientService(id);
 	return ctx.json(client);
 }

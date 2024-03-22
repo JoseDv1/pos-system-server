@@ -1,3 +1,4 @@
+import { PrismaClientKnownRequestError, PrismaClientValidationError } from "@prisma/client/runtime/library";
 import { Context } from "hono";
 import { StatusCode } from "hono/utils/http-status";
 import { ZodError } from "zod";
@@ -62,5 +63,19 @@ export function handleError(error: Error, ctx: Context) {
 			400);
 	}
 
+	if (error instanceof PrismaClientValidationError) {
+		const parseErrorMessage = error.message.split("\n").at(-1);
+		return ctx.json({
+			message: parseErrorMessage,
+		}, 400);
+	}
+
+	if (error instanceof PrismaClientKnownRequestError) {
+		const parseErrorMessage = error.message.split("\n").at(-1);
+		return ctx.json({ error: parseErrorMessage }, 400);
+	}
+
+
+	console.error(error);
 	return ctx.json({ error: error.message }, 500);
 }

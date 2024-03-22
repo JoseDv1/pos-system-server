@@ -5,8 +5,8 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 
 // Import routes
-import { handleError } from '@/errors/errors'
-import { apiRoutes } from '@/routes/indexRoute'
+import { handleError } from '@/utils/errors'
+import { apiRoutes } from '@/lib/router'
 
 // Start Hono
 const app = new Hono()

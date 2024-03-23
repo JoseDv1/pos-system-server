@@ -1,7 +1,4 @@
-import { prisma } from "@/utils/prisma";
 import type { Context } from "hono";
-import type { Client } from "@prisma/client";
-import { ErrorBadRequest, ErrorNotFound } from "@/utils/errors";
 import { deleteClientService, findClientById, findClients, insertClient, updateClientService } from "./clientsServices";
 
 /**
@@ -10,7 +7,7 @@ import { deleteClientService, findClientById, findClients, insertClient, updateC
  * @returns All the clients from the database
  */
 export async function getClients(ctx: Context) {
-	const clients: Client[] = await findClients();
+	const clients = await findClients();
 	return ctx.json(clients);
 }
 
@@ -31,8 +28,8 @@ export async function getClientById(ctx: Context) {
  * @returns The created client or an error if the client already exists or the name is not provided
  */
 export async function createClient(ctx: Context) {
-	const body = await ctx.req.json();
-	const insertedClient = await insertClient(body);
+	const data = ctx.get("validatedData")
+	const insertedClient = await insertClient(data);
 	return ctx.json(insertedClient, 201);
 }
 
@@ -43,8 +40,8 @@ export async function createClient(ctx: Context) {
  */
 export async function updateClient(ctx: Context) {
 	const { id } = ctx.req.param();
-	const body = await ctx.req.json();
-	const client = await updateClientService(id, body)
+	const data = ctx.get("validatedData")
+	const client = await updateClientService(id, data)
 	return ctx.json(client);
 }
 

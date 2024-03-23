@@ -3,7 +3,7 @@ import { z } from "zod"
 const categoryBaseSchema = z.object({
 	id: z.string(),
 	name: z.string().min(3, "Invalid input: name is required").max(30, "Invalid input: name is too long"),
-	description: z.string().min(3, "Invalid input: description is too short").optional()
+	description: z.string().optional()
 })
 
 

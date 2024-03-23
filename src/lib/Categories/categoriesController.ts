@@ -44,11 +44,9 @@ export async function getCategoryById(c: Context) {
 export async function createCategory(c: Context) {
 
 	// Get the name from the Validated request body
-	const data = await c.req.json();
-
+	const data = c.get("validatedData");
 	// Create the category in the database
 	const category = await insertCategory(data);
-
 	// Response with the created category
 	return c.json(category, 201);
 }
@@ -62,9 +60,7 @@ export async function putCategory(c: Context) {
 
 	// Get the id from the request parameters and the name and description from the request body
 	const { id } = c.req.param();
-
-	const data: Category = c.get("validatedData");
-
+	const data = c.get("validatedData");
 	// Update the category in the database
 	const updatedCategory = await updateCategory(id, data);
 

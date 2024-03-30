@@ -1,6 +1,6 @@
 // Import Controllers
 import { createCategory, deleteCategory, getCategories, putCategory, getCategoryById } from "@/lib/Categories/categoriesController";
-import { zValidorMiddleware } from "@/middlewares/zValidatorMiddleware";
+import { zValidatorMiddleware } from "@/middlewares/zValidatorMiddleware";
 import { createCategorySchema, updateCategorySchema } from "@/lib/Categories/categories.schema";
 
 // Import dependencies
@@ -14,8 +14,8 @@ categoriesRouter.get("/:id", getCategoryById)
 
 
 // Create a new category
-categoriesRouter.post("/", zValidorMiddleware(createCategorySchema), createCategory);
+categoriesRouter.post("/", zValidatorMiddleware(createCategorySchema), createCategory);
 // Update a category
-categoriesRouter.put("/:id", zValidorMiddleware(updateCategorySchema), putCategory);
+categoriesRouter.put("/:id", zValidatorMiddleware(updateCategorySchema), putCategory);
 // Delete a category
 categoriesRouter.delete("/:id", deleteCategory); 

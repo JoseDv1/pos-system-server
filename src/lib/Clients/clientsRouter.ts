@@ -1,6 +1,6 @@
 import { getClients, createClient, deleteClient, getClientById, updateClient } from "./clientsController";
 import { Hono } from "hono";
-import { zValidorMiddleware } from "@/middlewares/zValidatorMiddleware";
+import { zValidatorMiddleware } from "@/middlewares/zValidatorMiddleware";
 import { createClientSchema, updateClientSchema } from "./clients.schema";
 
 export const clientsRouter = new Hono();
@@ -12,10 +12,10 @@ clientsRouter.get('/', getClients);
 clientsRouter.get('/:id', getClientById);
 
 // Create a new client
-clientsRouter.post('/', zValidorMiddleware(createClientSchema), createClient);
+clientsRouter.post('/', zValidatorMiddleware(createClientSchema), createClient);
 
 // Update a client
-clientsRouter.put('/:id', zValidorMiddleware(updateClientSchema), updateClient);
+clientsRouter.put('/:id', zValidatorMiddleware(updateClientSchema), updateClient);
 
 // Delete a client
 clientsRouter.delete('/:id', deleteClient);

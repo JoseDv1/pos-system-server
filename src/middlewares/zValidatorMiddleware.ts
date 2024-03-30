@@ -1,7 +1,7 @@
 import { Context, MiddlewareHandler, Next } from "hono";
 import { AnyZodObject } from "zod";
 
-export const zValidorMiddleware = (schema: AnyZodObject): MiddlewareHandler => async (c: Context, next: Next) => {
+export const zValidatorMiddleware = (schema: AnyZodObject): MiddlewareHandler => async (c: Context, next: Next) => {
 
 	// Get The data from the request body
 	const data = await c.req.json();

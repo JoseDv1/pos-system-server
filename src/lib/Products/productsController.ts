@@ -1,6 +1,5 @@
 import { prisma } from "@/utils/prisma";
 import { deleteProductById, findProducts, insertProduct, updateProductById } from "./productsServices";
-import { Product } from "@prisma/client";
 import { Context } from "hono";
 
 
@@ -52,10 +51,10 @@ export async function getProductById(c: Context) {
  */
 export async function createProduct(c: Context) {
 	// get the data from the request body
-	const body: Product = await c.req.json();
+	const data = c.get("validatedData");
 
 	// Create a new product in database
-	const product = await insertProduct(body);
+	const product = await insertProduct(data);
 
 	// Response with the created product
 	return c.json(product, 201);
@@ -69,10 +68,8 @@ export async function createProduct(c: Context) {
  */
 export async function updateProduct(c: Context) {
 	const { id } = c.req.param();
-	const body: Product = await c.req.json();
-
-	const updatedProduct = await updateProductById(id, body);
-
+	const data = c.get("validatedData");
+	const updatedProduct = await updateProductById(id, data)
 	// Response with the updated product
 	return c.json(updatedProduct);
 }

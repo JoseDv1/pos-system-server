@@ -85,28 +85,11 @@ export async function findProductsOnSaleByProductId(saleId: string, productId: s
  * @returns the product on the sale with the sale and the product
  */
 export async function insertProductsOnSale(saleId: string, product: ProductsOnSales) {
-
-	if (product.unitCost) {
-		product.unitCost = Number(product.unitCost);
-	}
-
-	if (product.quantity) {
-		product.quantity = Number(product.quantity);
-	}
-
 	// Validate if the sale exists
 	await checkIfSaleExist(saleId);
 
 	// Chek if all products exists
 	const oldProduct = await checkIfProductExists(product.productId);
-
-	// Check the cost and quantity of the products
-	if (product.unitCost && product.unitCost <= 0 || product.quantity && product.quantity <= 0) {
-		throw new ErrorBadRequest("Invalid value or quantity")
-	}
-
-
-
 	// Check if the product is already on the sale
 	const productsOnSaleExists = await prisma.productsOnSales.findUnique({
 		where: {
@@ -124,52 +107,51 @@ export async function insertProductsOnSale(saleId: string, product: ProductsOnSa
 		throw new ErrorBadRequest(`Product ${productsOnSaleExists.product.name} is already on the sale`);
 	}
 
-	// Calculate the total cost of the sale
+	// Calculate the total cost of the sale (Get the cost of the product table and set it to the product on sale cost field)
 	const totalCost = oldProduct.price * product.quantity;
-
-
-
-	const [_, __, createdProducts] = await prisma.$transaction([
-		// Update the total cost of the sale
-		prisma.sale.update({
-			where: { id: saleId },
-			data: {
-				totalCost: {
-					increment: totalCost
+	try {
+		const [_, __, createdProducts] = await prisma.$transaction([
+			// Update the total cost of the sale
+			prisma.sale.update({
+				where: { id: saleId },
+				data: {
+					totalCost: {
+						increment: totalCost
+					}
 				}
-			}
-		}),
+			}),
 
-		// Decrease the quantity of the products
-		prisma.product.update({
-			where: { id: product.productId },
-			data: {
-				stock: {
-					decrement: product.quantity
+			// Decrease the quantity of the products
+			prisma.product.update({
+				where: { id: product.productId },
+				data: {
+					stock: {
+						decrement: product.quantity
+					}
 				}
-			}
-		}),
+			}),
 
-		//  Insert the products on the sale
-		prisma.productsOnSales.create({
-			data: {
-				...product,
-				saleId,
-				unitCost: oldProduct.price,
+			//  Insert the products on the sale
+			prisma.productsOnSales.create({
+				data: {
+					...product,
+					saleId,
+					unitCost: oldProduct.price,
 
-			},
-			include: {
-				product: true,
-				sale: true
-			}
-		}),
-	]);
+				},
+				include: {
+					product: true,
+					sale: true
+				}
+			}),
+		]);
 
-	if (!createdProducts) {
-		throw new ErrorBadRequest("Products on sale not created");
+		return createdProducts;
+
+	} catch (error) {
+		// TODO: Change this to Server Error
+		throw new ErrorBadRequest("Product on sale not created");
 	}
-
-	return createdProducts;
 
 }
 
@@ -180,12 +162,13 @@ export async function insertProductsOnSale(saleId: string, product: ProductsOnSa
  * @param data A product on sale object with the data to update
  * @returns the product on the sale with the sale and the product
  */
-export async function updateProductsOnSale(saleId: string, productId: string, data: ProductsOnSales) {
+export async function updateProductsOnSale(saleId: string, productId: string, data: Omit<ProductsOnSales, "productId" | "saleId">) {
 	// Validate if the sale exists
 	const oldSale = await checkIfSaleExist(saleId);
 	// Validate if the product exists
 	const oldProduct = await checkIfProductExists(productId);
 
+	// Check if the product is on the sale
 	const oldProductOnSale = await prisma.productsOnSales.findUnique({
 		where: {
 			productId_saleId: {
@@ -198,19 +181,6 @@ export async function updateProductsOnSale(saleId: string, productId: string, da
 		throw new ErrorNotFound("Product on sale not found");
 	}
 
-	// Cast the unitCost and quantity to number
-	if (data.unitCost) {
-		data.unitCost = Number(data.unitCost);
-	}
-
-	if (data.quantity) {
-		data.quantity = Number(data.quantity);
-	}
-
-	// Check the cost and quantity of the product
-	if (data.unitCost && data.unitCost <= 0 || data.quantity && data.quantity <= 0) {
-		throw new ErrorBadRequest("Invalid value or quantity");
-	}
 	// Check if almost one field is being updated
 	if (!data.unitCost && !data.quantity) {
 		throw new ErrorBadRequest("At least one field must be updated");
@@ -218,54 +188,52 @@ export async function updateProductsOnSale(saleId: string, productId: string, da
 
 	// Invetory the quantity of the product
 	const quantityDiference = data.quantity - oldProductOnSale.quantity;
-
 	// Calculate the new Stock of the product
 	const newStock = oldProduct.stock - quantityDiference
-
 	// Get the diference between the old and the new cost
 	const totalCostDiference = (data.unitCost * data.quantity) - (oldProductOnSale.unitCost * oldProductOnSale.quantity);
-
 	// Update the product on the sale, the total cost of the sale and the quantity of the product in stock
-	const [_, __, updatedProduct] = await prisma.$transaction([
+	try {
+		const [_, __, updatedProduct] = await prisma.$transaction([
 
 
 
-		// Update the total cost of the sale
-		prisma.sale.update({
-			where: { id: saleId },
-			data: {
-				totalCost: oldSale.totalCost + totalCostDiference
-			}
-		}),
-
-		// Update the quantity of the product
-		prisma.product.update({
-			where: { id: productId },
-			data: {
-				stock: newStock
-			}
-		}),
-
-		// Update the product on the sale
-		prisma.productsOnSales.update({
-			where: {
-				productId_saleId: {
-					productId, saleId
+			// Update the total cost of the sale
+			prisma.sale.update({
+				where: { id: saleId },
+				data: {
+					totalCost: oldSale.totalCost + totalCostDiference
 				}
-			},
-			data,
-			include: {
-				product: true,
-				sale: true
-			}
-		}),
-	]);
+			}),
 
-	if (!updatedProduct) {
+			// Update the quantity of the product
+			prisma.product.update({
+				where: { id: productId },
+				data: {
+					stock: newStock
+				}
+			}),
+
+			// Update the product on the sale
+			prisma.productsOnSales.update({
+				where: {
+					productId_saleId: {
+						productId, saleId
+					}
+				},
+				data,
+				include: {
+					product: true,
+					sale: true
+				}
+			}),
+		]);
+
+		return updatedProduct;
+	} catch (error) {
+		// TODO: Change this to Server Error
 		throw new ErrorBadRequest("Product on sale not updated");
 	}
-
-	return updatedProduct;
 }
 
 /**

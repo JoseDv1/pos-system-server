@@ -33,9 +33,8 @@ export async function getProductOnSale(c: Context) {
  */
 export async function postProductsOnSale(c: Context) {
 	const { saleId } = c.req.param();
-	const product = await c.req.json<ProductsOnSales>();
-
-	const productsOnSale = await insertProductsOnSale(saleId, product);
+	const body = c.get("validatedData");
+	const productsOnSale = await insertProductsOnSale(saleId, body);
 	return c.json(productsOnSale);
 
 }
@@ -47,8 +46,8 @@ export async function postProductsOnSale(c: Context) {
  */
 export async function putProductOnSale(c: Context) {
 	const { saleId, productId } = c.req.param();
-	const product = await c.req.json<ProductsOnSales>();
-	const productOnSale = await updateProductsOnSale(saleId, productId, product);
+	const body = c.get("validatedData");
+	const productOnSale = await updateProductsOnSale(saleId, productId, body);
 	return c.json(productOnSale);
 }
 

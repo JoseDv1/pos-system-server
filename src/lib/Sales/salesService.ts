@@ -1,6 +1,7 @@
 
 import { ErrorBadRequest, ErrorNotFound } from "@/utils/errors";
 import { prisma } from "@/utils/prisma";
+import { Sale } from "@prisma/client";
 
 
 /**
@@ -39,6 +40,78 @@ export async function checkIfSaleExist(saleId: string) {
 	return sale;
 }
 
+// ---- CRUD ----
+export const findSalesService = async () => {
+	const sales = await prisma.sale.findMany(
+		{
+			include: {
+				client: true,
+				saleProducts: true
+			}
+		}
+	);
+	return sales;
+}
+
+export const findSaleByIdService = async (id: string) => {
+	const sale = await prisma.sale.findUnique({
+		where: {
+			id: id
+		},
+		include: {
+			client: true,
+			saleProducts: true,
+		}
+	});
+
+	if (!sale) {
+		throw new ErrorNotFound("Sale not found");
+	}
+
+	return sale;
+}
+
+export const createSaleService = async (data: Pick<Sale, "clientId">) => {
+	const createdSale = await prisma.sale.create({
+		data: {
+			clientId: data.clientId,
+		},
+		include: {
+			client: true
+		}
+	});
+
+	return createdSale
+}
+
+export const updateSaleService = async (id: string, data: Partial<Sale>) => {
+	if (!data.clientId && !data.paymentMethod && !data.totalCost && !data.status) {
+		throw new ErrorBadRequest("At least one field is required");
+	}
+	// Update the sale
+	const updatedSale = await prisma.sale.update({
+		where: {
+			id,
+		},
+		data,
+	});
+
+	return updatedSale
+}
+
+export const deleteSaleService = async (id: string) => {
+	// Delete the sale
+	const deletedSale = await prisma.sale.delete({
+		where: {
+			id: id
+		}
+	});
+
+	return deletedSale;
+}
+
+
+// ---- Not CRUD Operations ----
 export const markAllSalesAsPaidByClientService = async (clientId: string) => {
 	// Check if the client exists
 	await checkIfClientExist(clientId);

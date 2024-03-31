@@ -1,0 +1,11 @@
+import { z } from "zod"
+
+const salesSchema = z.object({
+	clientId: z.string().uuid(),
+	totalCost: z.number().positive(),
+	status: z.enum(["PENDING", "PAYED"]),
+	paymentMethod: z.enum(["CASH", "CARD", "TRANSFER"]),
+})
+
+export const createSalesSchema = salesSchema.pick({ clientId: true })
+export const updateSalesSchema = salesSchema.partial()

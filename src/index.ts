@@ -6,7 +6,7 @@ import { logger } from 'hono/logger'
 
 // Import routes
 import { handleError } from '@/utils/errors'
-import { apiRoutes } from '@/lib/router'
+import { apiRoutes } from '@/core/router'
 
 // Start Hono
 const app = new Hono()

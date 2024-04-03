@@ -1,7 +1,7 @@
 // Import Controllers
-import { createCategory, deleteCategory, getCategories, putCategory, getCategoryById } from "@/lib/Categories/categoriesController";
+import { createCategory, deleteCategory, getCategories, putCategory, getCategoryById } from "@/core/Categories/categoriesController";
 import { zValidatorMiddleware } from "@/middlewares/zValidatorMiddleware";
-import { createCategorySchema, updateCategorySchema } from "@/lib/Categories/categories.schema";
+import { createCategorySchema, updateCategorySchema } from "@/core/Categories/categories.schema";
 
 // Import dependencies
 import { Hono } from "hono";

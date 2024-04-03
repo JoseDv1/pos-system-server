@@ -1,7 +1,7 @@
 import { ErrorBadRequest, ErrorNotFound } from "@/utils/errors";
 import { prisma } from "@/utils/prisma";
 import { ProductsOnSupply } from "@prisma/client";
-import { checkIfProductExists } from "@/lib/Products/productsServices";
+import { checkIfProductExists } from "@/core/Products/productsServices";
 
 
 

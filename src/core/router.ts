@@ -1,14 +1,14 @@
 import { Hono } from "hono";
 
 // Import routes
-import { categoriesRouter } from '@/lib/Categories/categoriesRoutes'
-import { clientsRouter } from '@/lib/Clients/clientsRouter'
-import { productsRouter } from '@/lib/Products/productsRouter'
-import { productsOnSaleRouter } from '@/lib/ProductsOnSale/productsOnSaleRouter'
-import { productsOnSupplyRouter } from '@/lib/ProductsOnSupplies/productsOnSuppliesRouter'
-import { providerRouter } from '@/lib/Providers/providersRouter'
-import { salesRouter } from "@/lib/Sales/salesRouter"
-import { suppliesRouter } from '@/lib/Supplies/suppliesRouter'
+import { categoriesRouter } from '@/core/Categories/categoriesRoutes'
+import { clientsRouter } from '@/core/Clients/clientsRouter'
+import { productsRouter } from '@/core/Products/productsRouter'
+import { productsOnSaleRouter } from '@/core/ProductsOnSale/productsOnSaleRouter'
+import { productsOnSupplyRouter } from '@/core/ProductsOnSupplies/productsOnSuppliesRouter'
+import { providerRouter } from '@/core/Providers/providersRouter'
+import { salesRouter } from "@/core/Sales/salesRouter"
+import { suppliesRouter } from '@/core/Supplies/suppliesRouter'
 
 
 

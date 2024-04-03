@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createSale, deleteSale, getSaleById, getSales, updateSale, markAllSalesAsPaidByClientController, markSaleAsPaidController, markSaleAsPendingController } from "./salesController"
+import { createSale, deleteSale, getSaleById, getSales, updateSale, markAllSalesAsPaidByClientController, markSaleAsPaidController, markSaleAsPendingController, getSalesReportByDate } from "./salesController"
 import { zValidatorMiddleware } from "@/middlewares/zValidatorMiddleware";
 import { createSalesSchema, updateSalesSchema } from "./sales.schema"
 
@@ -7,7 +7,7 @@ export const salesRouter = new Hono();
 
 // Get all sales
 salesRouter.get("/", getSales);
-
+salesRouter.get("/report", getSalesReportByDate)
 // Get sale by id
 salesRouter.get("/:id", getSaleById);
 

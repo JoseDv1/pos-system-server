@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getProductsOnSale, getProductOnSale, postProductsOnSale, putProductOnSale, deleteProductOnSale } from "./productsOnSaleController";
+import { getProductsOnSale, getProductOnSale, postProductsOnSale, putProductOnSale, deleteProductOnSale, addOneProductOnSale } from "./productsOnSaleController";
 import { createProductsOnSaleSchema, updateProductsOnSaleSchema } from "./productsOnSale.schema";
 import { zValidatorMiddleware } from "@/middlewares/zValidatorMiddleware";
 
@@ -16,6 +16,7 @@ productsOnSaleRouter.post("/", zValidatorMiddleware(createProductsOnSaleSchema),
 
 // Update a Product on Sale
 productsOnSaleRouter.put("/:productId", zValidatorMiddleware(updateProductsOnSaleSchema), putProductOnSale);
+productsOnSaleRouter.patch("/:productId/addOne", addOneProductOnSale)
 
 // Delete a Product on Sale
 productsOnSaleRouter.delete("/:productId", deleteProductOnSale);

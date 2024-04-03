@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { ProductsOnSales } from "@prisma/client";
-import { deleteProductsOnSale, findProductsOnSale, findProductsOnSaleByProductId, insertProductsOnSale, updateProductsOnSale } from "./productsOnSaleServices"
+import { addOne, deleteProductsOnSale, findProductsOnSale, findProductsOnSaleByProductId, insertProductsOnSale, updateProductsOnSale } from "./productsOnSaleServices"
 
 
 /**
@@ -61,3 +61,9 @@ export async function deleteProductOnSale(c: Context) {
 	const deletedProductOnSale = await deleteProductsOnSale(saleId, productId);
 	return c.json(deletedProductOnSale);
 }
+
+export async function addOneProductOnSale(c: Context) {
+	const { saleId, productId } = c.req.param();
+	const addedProductOnSale = await addOne(saleId, productId);
+	return c.json(addedProductOnSale);
+} 

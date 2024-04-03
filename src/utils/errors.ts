@@ -75,7 +75,5 @@ export function handleError(error: Error, ctx: Context) {
 		return ctx.json({ error: parseErrorMessage }, 400);
 	}
 
-
-	console.error(error);
 	return ctx.json({ error: error.message }, 500);
 }

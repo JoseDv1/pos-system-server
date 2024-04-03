@@ -27,17 +27,14 @@ export async function checkIfProductExists(productId: string) {
  * @returns an array of products from the database
  */
 export async function findProducts() {
-
 	const products: Array<Product> = await prisma.product.findMany({
 		include: {
 			category: true
 		}
 	});
-
 	if (!products) {
 		throw new ErrorNotFound("Products not found");
 	}
-
 	return products;
 }
 
@@ -47,8 +44,17 @@ export async function findProducts() {
  * @returns 
  */
 export async function findProduct(productId: string) {
-	// TODO: This work but it is not the best way to do it
-	const product = await checkIfProductExists(productId);
+	const product = await prisma.product.findUnique({
+		where: { id: productId },
+		include: {
+			category: true
+		}
+	});
+
+	if (!product) {
+		throw new ErrorNotFound("Product not found");
+	}
+
 	return product;
 }
 

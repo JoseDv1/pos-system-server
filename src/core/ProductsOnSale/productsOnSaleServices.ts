@@ -12,11 +12,6 @@ import { checkIfSaleExist } from "@/core/Sales/salesService";
  * @returns an array of products on the sale with the sale and the client
  */
 export async function findProductsOnSale(saleId: string) {
-	// Validate if the sale exists
-	await checkIfSaleExist(saleId);
-
-	// TODO: Refactor this to Query first the productsOnSale Table and not the sale Table
-
 	// Get all products on the sale from the database
 	const productsOnSale = await prisma.sale.findUnique({
 		where: { id: saleId },
@@ -49,8 +44,6 @@ export async function findProductsOnSaleByProductId(saleId: string, productId: s
 
 	// Validate if the product exists
 	await checkIfProductExists(productId);
-
-	// TODO: Refactor this to Query first the productsOnSale Table and not the sale Table
 
 	// Get the product on the sale from the database
 	const productOnSale = await prisma.sale.findFirst(
@@ -103,8 +96,46 @@ export async function insertProductsOnSale(saleId: string, product: ProductsOnSa
 		}
 	});
 
+	// If the product is already on the sale add the quantity to the product on the sale
 	if (productsOnSaleExists) {
-		throw new ErrorBadRequest(`Product ${productsOnSaleExists.product.name} is already on the sale`);
+		await prisma.$transaction([
+			// Update the total cost of the sale
+			prisma.sale.update({
+				where: { id: saleId },
+				data: {
+					totalCost: {
+						increment: oldProduct.price * product.quantity
+					}
+				}
+			}),
+			// Update the quantity of the product
+			prisma.product.update({
+				where: { id: product.productId },
+				data: {
+					stock: {
+						decrement: product.quantity
+					}
+				}
+			}),
+			// Update the product on the sale
+			prisma.productsOnSales.update({
+				where: {
+					productId_saleId: {
+						productId: product.productId,
+						saleId
+					}
+				},
+				data: {
+					quantity: {
+						increment: product.quantity
+					}
+				},
+				include: {
+					product: true,
+					sale: true
+				}
+			}),
+		]);
 	}
 
 	// Calculate the total cost of the sale (Get the cost of the product table and set it to the product on sale cost field)
@@ -149,8 +180,7 @@ export async function insertProductsOnSale(saleId: string, product: ProductsOnSa
 		return createdProducts;
 
 	} catch (error) {
-		// TODO: Change this to Server Error
-		throw new ErrorBadRequest("Product on sale not created");
+		throw new Error("Product on sale not created");
 	}
 
 }
@@ -163,9 +193,7 @@ export async function insertProductsOnSale(saleId: string, product: ProductsOnSa
  * @returns the product on the sale with the sale and the product
  */
 export async function updateProductsOnSale(saleId: string, productId: string, data: Omit<ProductsOnSales, "productId" | "saleId">) {
-	// Validate if the sale exists
 	const oldSale = await checkIfSaleExist(saleId);
-	// Validate if the product exists
 	const oldProduct = await checkIfProductExists(productId);
 
 	// Check if the product is on the sale
@@ -231,8 +259,7 @@ export async function updateProductsOnSale(saleId: string, productId: string, da
 
 		return updatedProduct;
 	} catch (error) {
-		// TODO: Change this to Server Error
-		throw new ErrorBadRequest("Product on sale not updated");
+		throw new Error("Product on sale not updated");
 	}
 }
 
@@ -299,4 +326,50 @@ export async function deleteProductsOnSale(saleId: string, productId: string) {
 	return deletedProduct;
 }
 
+export async function addOne(saleId: string, productId: string) {
+	const productOnSale = await prisma.productsOnSales.findUnique({
+		where: {
+			productId_saleId: {
+				productId, saleId
+			}
+		}
+	});
+
+	if (!productOnSale) {
+		throw new ErrorNotFound("Product on sale not found");
+	}
+
+	const [_, __, updatedProduct] = await prisma.$transaction([
+		prisma.sale.update({
+			where: { id: saleId },
+			data: {
+				totalCost: {
+					increment: productOnSale.unitCost
+				}
+			}
+		}),
+		prisma.product.update({
+			where: { id: productId },
+			data: {
+				stock: {
+					decrement: 1
+				}
+			}
+		}),
+		prisma.productsOnSales.update({
+			where: {
+				productId_saleId: {
+					productId, saleId
+				}
+			},
+			data: {
+				quantity: {
+					increment: 1
+				}
+			}
+		})
+	]);
+
+	return updatedProduct;
+}
 

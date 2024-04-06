@@ -94,6 +94,7 @@ model Sale {
   paymentMethod PaymentMethod     @default(CASH)
   saleProducts  ProductsOnSales[]
   client        Client            @relation(fields: [clientId], references: [id])
+  note          String?
 
   @@map("sales")
 }

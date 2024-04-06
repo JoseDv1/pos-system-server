@@ -5,6 +5,7 @@ const salesSchema = z.object({
 	totalCost: z.number().positive(),
 	status: z.enum(["PENDING", "PAYED"]),
 	paymentMethod: z.enum(["CASH", "CARD", "TRANSFER"]),
+	note: z.string().optional(),
 })
 
 export const createSalesSchema = salesSchema.pick({ clientId: true })

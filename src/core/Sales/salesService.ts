@@ -85,7 +85,7 @@ export const createSaleService = async (data: Pick<Sale, "clientId">) => {
 }
 
 export const updateSaleService = async (id: string, data: Partial<Sale>) => {
-	if (!data.clientId && !data.paymentMethod && !data.totalCost && !data.status) {
+	if (!data.clientId && !data.paymentMethod && !data.totalCost && !data.status && !data.note) {
 		throw new ErrorBadRequest("At least one field is required");
 	}
 	// Update the sale

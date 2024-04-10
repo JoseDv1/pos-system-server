@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { execSync } from 'child_process'
 
 // Import routes
 import { categoriesRouter } from '@/core/Categories/categoriesRoutes'
@@ -16,27 +17,17 @@ import { suppliesRouter } from '@/core/Supplies/suppliesRouter'
 export const apiRoutes = new Hono()
 
 // ----- Routes ----- 
-
-// Categories
 apiRoutes.route('/categories', categoriesRouter)
-
-// Products
 apiRoutes.route('/products', productsRouter)
-
-// Providers 
 apiRoutes.route('/providers', providerRouter)
-
-// Clients
 apiRoutes.route('/clients', clientsRouter)
-
-// Sales
 apiRoutes.route('/sales', salesRouter)
-
-// Products on sale
 apiRoutes.route('/sales/:saleId/products', productsOnSaleRouter)
-
-// Supplies
 apiRoutes.route('/supplies', suppliesRouter)
+apiRoutes.route('/supplies/:supplyId/products', productsOnSupplyRouter)
 
-// Products on supply
-apiRoutes.route('/supplies/:supplyId/products', productsOnSupplyRouter) 
+// Utils 
+apiRoutes.get('/version', (ctx) => {
+	const version = execSync('git log -1 --pretty=format:"%H"').toString()
+	return ctx.text(version)
+})

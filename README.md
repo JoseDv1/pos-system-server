@@ -4,7 +4,8 @@ This API is used to comunicate with the database of the POS system whit Prisma O
 
 ## Installation
 
-Use your favorite package manager to install the dependencies. I use Bun
+This project uses bun runtime for running the project.
+[Install bun](https://bun.sh/)
 
 ```bash
 bun install

@@ -170,22 +170,20 @@ export const markSaleAsPendingService = async (id: string) => {
 }
 
 export async function getSalesReportByDateService(from: string, to: string) {
-	const sales = await prisma.sale.findMany({
-		where: {
-			createdAt: {
-				gte: new Date(from),
-				lte: new Date(to)
-			}
-		},
-		include: {
-			client: true,
-			saleProducts: {
-				include: {
-					product: true
-				}
-			}
-		}
-	});
+	// Get the sales using a raw sql query ordered by date and grouped by date with the sum of the total cost on that day
+	const sales = await prisma.$queryRaw`
+		SELECT 
+			date_trunc('day', "createdAt") as date,
+			SUM("totalCost") as total
+		FROM 
+			"sales"
+		WHERE 
+		"createdAt" >= to_date(${from}, 'YYYY-MM-DD') AND "createdAt" <= to_date(${to}, 'YYYY-MM-DD')
+		GROUP BY 
+			date
+		ORDER BY 
+			date
+	`;
 
 	return sales;
 }

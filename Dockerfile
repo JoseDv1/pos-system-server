@@ -21,10 +21,10 @@ RUN cd /temp/prod && bun install --frozen-lockfile --production
 FROM base AS relase
 COPY --from=install /temp/dev/node_modules node_modules
 COPY --from=install /temp/prod/node_modules node_modules
+RUN apt-get update -y && apt-get install -y openssl && apt-get install -y git
 COPY . .
 
 # --- Build Steps---
-RUN apt-get update -y && apt-get install -y openssl && apt-get install -y git
 
 # Set environment variables
 ENV DATABASE_URL=postgres://postgres:possystem1001446301!@localhost:5432/pos_system_db

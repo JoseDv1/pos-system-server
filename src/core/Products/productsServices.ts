@@ -64,43 +64,13 @@ export async function findProduct(productId: string) {
  * @returns the new product created
  */
 export async function insertProduct(data: Product) {
-	const { name, categoryId, price, stock } = data;
-
-	// Validate the fields
-	if (!name || !categoryId || !price) {
-		throw new ErrorBadRequest("Name, category and price are required");
-	}
-
-	// Check if the product already exists
-	const existingProduct = await prisma.product.findFirst({
-		where: { name, categoryId },
-	});
-
-	// If the product already exists, return an error
-	if (existingProduct) {
-		throw new ErrorBadRequest("Product already exists");
-	}
-
-	// Chech if the category exists
-	const category = await prisma.category.findUnique({
-		where: { id: categoryId }
-	});
-
-	// If the category does not exists, return an error
-	if (!category) {
-		throw new ErrorNotFound("Category not found");
-	}
-
 	// Create a new product in database
 	const product = await prisma.product.create({
-		data: {
-			name, categoryId, price, stock
-		},
+		data,
 		include: {
 			category: {
 				select: {
 					name: true,
-					description: true
 				}
 			}
 		}
@@ -116,48 +86,20 @@ export async function insertProduct(data: Product) {
  * @returns the updated product
  */
 export async function updateProductById(productId: string, data: Product) {
-	const { name, price, stock, categoryId } = data;
 
 	// Check is almost one field is provided
-	if (!name && !price && !categoryId && stock == undefined) {
+	if (!data.name && !data.price && !data.categoryId && data.stock == undefined && data.isRawMaterial == undefined) {
 		throw new ErrorBadRequest("At least one field is required");
-	}
-
-	// Check if the product already exists
-	const findProduct = await prisma.product.findUnique({
-		where: {
-			id: productId
-		},
-	});
-
-	// If the product does not exists, return an error
-	if (!findProduct) {
-		throw new ErrorNotFound("Product not found");
-	}
-
-	// if the object is the same, return the object
-	if (findProduct.name === name &&
-		findProduct.price === price &&
-		findProduct.stock === stock &&
-		findProduct.categoryId === categoryId
-	) {
-		return findProduct;
 	}
 
 	// Update the product in database
 	const updatedProduct = await prisma.product.update({
 		where: { id: productId },
-		data: {
-			name,
-			categoryId,
-			price,
-			stock,
-		},
+		data,
 		include: {
 			category: true
 		}
 	});
-
 
 	return updatedProduct;
 }

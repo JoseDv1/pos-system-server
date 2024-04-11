@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const suppliesSchema = z.object({
-	totalCost: z.number().positive("El costo total debe ser mayor a 0"),
+	totalCost: z.number().nonnegative("El costo total debe ser mayor a 0"),
 	providerId: z.string().uuid(),
 })
 

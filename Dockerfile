@@ -1,4 +1,4 @@
-FROM oven/bun:latest as base
+FROM oven/bun:1.1 as base
 # Create app directory
 
 WORKDIR /usr/src/app
@@ -24,7 +24,8 @@ COPY --from=install /temp/prod/node_modules node_modules
 COPY . .
 
 # --- Build Steps---
-RUN apt-get update -y && apt-get install -y openssl
+RUN apt-get update -y && apt-get install -y openssl && apt-get install -y git
+
 # Set environment variables
 ENV DATABASE_URL=postgres://postgres:possystem1001446301!@localhost:5432/pos_system_db
 # Generate Prisma client

@@ -28,6 +28,7 @@ apiRoutes.route('/supplies/:supplyId/products', productsOnSupplyRouter)
 
 // Utils 
 apiRoutes.get('/version', (ctx) => {
-	const version = execSync('git log -1 --pretty=format:"%H"').toString()
+	execSync("git config --global --add safe.directory /usr/src/app")
+	const version = execSync("git rev-parse HEAD").toString()
 	return ctx.text(version)
 })

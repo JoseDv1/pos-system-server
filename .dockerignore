@@ -1,5 +1,4 @@
 .dockerignore
-.git
 .gitignore
 *.md
 node_modules

@@ -2,7 +2,7 @@ import { z } from "zod"
 
 const salesSchema = z.object({
 	clientId: z.string().uuid(),
-	totalCost: z.number().positive(),
+	totalCost: z.number().nonnegative(),
 	status: z.enum(["PENDING", "PAYED"]),
 	paymentMethod: z.enum(["CASH", "CARD", "TRANSFER"]),
 	note: z.string().optional(),

@@ -94,6 +94,9 @@ export const updateSaleService = async (id: string, data: Partial<Sale>) => {
 			id,
 		},
 		data,
+		include: {
+			client: true
+		}
 	});
 
 	return updatedSale

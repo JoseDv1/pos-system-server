@@ -10,8 +10,6 @@ import { findProductOnSupply, findProductsOnSupply, insertProductsOnSupply, remo
  */
 export async function getProductsOnSupply(ctx: Context) {
 	const { supplyId } = ctx.req.param();
-
-	// Get all products on the supply
 	const productsOnSupply = await findProductsOnSupply(supplyId);
 	return ctx.json(productsOnSupply);
 
@@ -23,10 +21,7 @@ export async function getProductsOnSupply(ctx: Context) {
  * @returns return the product on the supply from the database by its ID
  */
 export async function getProductsOnSupplyById(ctx: Context) {
-
 	const { supplyId, productId } = ctx.req.param();
-
-	// Get the product on the supply
 	const productOnSupply = await findProductOnSupply(supplyId, productId);
 	return ctx.json(productOnSupply);
 }
@@ -39,15 +34,9 @@ export async function getProductsOnSupplyById(ctx: Context) {
  */
 export async function postProductsOnSupply(ctx: Context) {
 	const { supplyId } = ctx.req.param();
-	const body: ProductsOnSupply[] = await ctx.req.json();
-
-	// Insert all products on the supply
+	const body = ctx.get("validatedData")
 	const productOnSupply = await insertProductsOnSupply(supplyId, body);
-
-
-	// Return the product that was inserted on the supply
 	return ctx.json(productOnSupply);
-
 }
 
 /**
@@ -56,13 +45,9 @@ export async function postProductsOnSupply(ctx: Context) {
  * @returns return the updated product on the supply from the database
  */
 export async function putProductOnSupply(ctx: Context) {
-
 	const { supplyId, productId } = ctx.req.param();
-	const body: ProductsOnSupply = await ctx.req.json();
-
+	const body = ctx.get("validatedData")
 	const updatedProductOnSupply = await updateProductOnSupply(supplyId, productId, body);
-
-
 	return ctx.json(updatedProductOnSupply);
 }
 
@@ -73,10 +58,7 @@ export async function putProductOnSupply(ctx: Context) {
  */
 export async function deleteProductOnSupply(ctx: Context) {
 	const { supplyId, productId } = ctx.req.param();
-
-	// Delete the product on the supply
 	const deletedProductOnSupply = await removeProductOnSupply(supplyId, productId);
-
 	return ctx.json(deletedProductOnSupply);
 }
 

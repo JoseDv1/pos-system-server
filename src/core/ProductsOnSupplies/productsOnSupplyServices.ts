@@ -3,8 +3,6 @@ import { prisma } from "@/utils/prisma";
 import { ProductsOnSupply } from "@prisma/client";
 import { checkIfProductExists } from "@/core/Products/productsServices";
 
-
-
 /**
  * Function to check if a supply exists in the database by its id
  * @param supplyId 
@@ -29,8 +27,6 @@ export async function checkIfSupplyExists(supplyId: string) {
  * @returns an array of products on the supply with the supply and the provider
  */
 export async function findProductsOnSupply(supplyId: string) {
-	// Validate if the supply exists
-	const supply = await checkIfSupplyExists(supplyId);
 
 	// Get all products on the supply
 	const productsOnSupply = await prisma.supply.findUnique({
@@ -44,10 +40,6 @@ export async function findProductsOnSupply(supplyId: string) {
 		}
 	});
 
-	if (!productsOnSupply) {
-		throw new ErrorNotFound("Products on supply not found");
-	}
-
 	return productsOnSupply;
 }
 
@@ -58,27 +50,15 @@ export async function findProductsOnSupply(supplyId: string) {
  * @returns a Specific product on the supply with the supply and the provider
  */
 export async function findProductOnSupply(supplyId: string, productId: string) {
-
-	// Validate if the supply exists
-	const supply = await checkIfSupplyExists(supplyId);
-
-	// Validate if the product exists
-	const product = await checkIfProductExists(productId);
-
 	// Get the product on the supply
-	const productOnSupply = await prisma.productsOnSupply.findFirst({
+	const productOnSupply = await prisma.productsOnSupply.findUnique({
 		where: {
-			productId,
-			supplyId
-		},
-		include: {
-			product: true
+			productId_supplyId: {
+				productId,
+				supplyId
+			}
 		}
-	});
-
-	if (!productOnSupply) {
-		throw new ErrorNotFound("Product on supply not found");
-	}
+	})
 
 	return productOnSupply;
 }
@@ -89,102 +69,116 @@ export async function findProductOnSupply(supplyId: string, productId: string) {
  * @param products 
  * @returns 
  */
-export async function insertProductsOnSupply(supplyId: string, products: ProductsOnSupply[]) {
-	// TODO: Refactor this function receive a single product and not an array of products
+export async function insertProductsOnSupply(supplyId: string, product: Pick<ProductsOnSupply, "productId" | "quantity">) {
+	// Validate if the supply exists
+	await checkIfSupplyExists(supplyId)
 
-	// Check if the supply exists
-	const supply = await checkIfSupplyExists(supplyId);
+	// Chek if products exists
+	const oldProduct = await checkIfProductExists(product.productId);
 
-	// Check if all products exists
-	products.forEach(async (product) => {
-		await checkIfProductExists(product.productId);
-	});
-
-	// Check if the cost of the products is negative
-	const negativeCost = products.find((product) => product.unitCost < 0);
-	if (negativeCost) {
-		throw new ErrorBadRequest("Unit cost cannot be negative");
-	}
-
-	// Check if the quantity of the products is negative
-	const negativeQuantity = products.find((product) => product.quantity <= 0);
-	if (negativeQuantity) {
-		throw new ErrorBadRequest("Quantity cannot be negative");
-	}
-
-	// Check if the products is already on the supply
-	const productsOnSupplyExists = await prisma.productsOnSupply.findMany({
+	// Check if the product is already on the supply
+	const productsOnSupplyExists = await prisma.productsOnSupply.findUnique({
 		where: {
-			productId: {
-				in: products.map((product) => product.productId)
-			},
-			supplyId
-		}, include: {
+			productId_supplyId: {
+				productId: product.productId,
+				supplyId
+			}
+		},
+		include: {
 			product: true
 		}
 	});
 
-
-	productsOnSupplyExists.forEach((productOnSupply) => {
-		const product = products.find((product) => product.productId === productOnSupply.productId);
-		if (product) {
-			throw new ErrorBadRequest(`Product ${productOnSupply.product.name} is already on the supply`);
-		}
-	});
-
-
-
-	// Calculate the total cost of the products to insert on the supply
-	const totalCost = products.reduce((acc, product) => {
-		const totalProductCost = product.quantity * product.unitCost;
-		return acc + totalProductCost;
-	}, 0);
-	if (totalCost < 0) {
-		throw new ErrorBadRequest("Total cost cannot be negative");
-	}
-
-
-
-
-
-	const transaction = await prisma.$transaction([
-
-		// Update the total cost of the supply
-		prisma.supply.update({
-			where: { id: supplyId },
-			data: {
-				totalCost: {
-					increment: totalCost
+	// If the product is already on the supply add the quantity to the product on the supply
+	if (productsOnSupplyExists) {
+		await prisma.$transaction([
+			// Update the total cost of the supply
+			prisma.supply.update({
+				where: { id: supplyId },
+				data: {
+					totalCost: {
+						increment: oldProduct.price * product.quantity
+					}
 				}
-			}
-		}),
+			}),
 
-		// Update the stock of the products
-		...products.map((product) => {
-			return prisma.product.update({
+			// Update the quantity of the product
+			prisma.product.update({
 				where: { id: product.productId },
 				data: {
 					stock: {
 						increment: product.quantity
 					}
 				}
-			})
-		}),
+			}),
 
-		// Insert the products on the supply
-		prisma.productsOnSupply.createMany({
-			data: products.map((product) => {
-				return {
-					...product,
-					supplyId
+
+			// Update the product on the supply
+			prisma.productsOnSupply.update({
+				where: {
+					productId_supplyId: {
+						productId: product.productId,
+						supplyId
+					}
+				},
+				data: {
+					quantity: {
+						increment: product.quantity
+					}
+				},
+				include: {
+					product: true,
+					supply: true
 				}
 			}),
-		}),
-	]);
+		]);
+	}
 
+	// Calculate the total cost of the supply (Get the cost of the product table and set it to the product on supply cost field)
+	const totalCost = oldProduct.price * product.quantity;
 
-	// Return the inserted products on supply
-	return transaction[transaction.length - 1];
+	try {
+		const [_, __, createdProducts] = await prisma.$transaction([
+			// Update the total cost of the supple¿y
+			prisma.supply.update({
+				where: { id: supplyId },
+				data: {
+					totalCost: {
+						increment: totalCost
+					}
+				}
+			}),
+
+			// Increase the quantity of the products
+			prisma.product.update({
+				where: { id: product.productId },
+				data: {
+					stock: {
+						increment: product.quantity
+					}
+				}
+			}),
+
+			//  Insert the products on the supply
+			prisma.productsOnSupply.create({
+				data: {
+					...product,
+					supplyId,
+					unitCost: oldProduct.price,
+
+				},
+				include: {
+					product: true,
+					supply: true
+				}
+			}),
+		]);
+
+		return createdProducts;
+
+	} catch (error) {
+		throw new Error("Product on sale not created");
+	}
 }
 
 /**
@@ -195,72 +189,76 @@ export async function insertProductsOnSupply(supplyId: string, products: Product
  * @param data 
  * @returns the product on the supply with the supply and the product
  */
-export async function updateProductOnSupply(supplyId: string, productId: string, data: ProductsOnSupply) {
+export async function updateProductOnSupply(supplyId: string, productId: string, data: Omit<ProductsOnSupply, "productId" | "supplyId">) {
+	const oldSupply = await checkIfSupplyExists(supplyId)
+	const oldProduct = await checkIfProductExists(productId);
+
+	// Check if the product is on the sale
+	const oldProductSupply = await prisma.productsOnSupply.findUnique({
+		where: {
+			productId_supplyId: {
+				productId,
+				supplyId
+			}
+		}
+	});
+
+	if (!oldProductSupply) {
+		throw new ErrorNotFound("Product on sale not found");
+	}
 
 	// Check if almost one field is being updated
-	if (!data.quantity && !data.unitCost) {
+	if (!data.unitCost && !data.quantity) {
 		throw new ErrorBadRequest("At least one field must be updated");
 	}
 
-	// Check if the supply exists
-	const supply = await checkIfSupplyExists(supplyId);
-
-	// Check if the product exists
-	const product = await checkIfProductExists(productId);
-
-	// Calculate the total cost of the product to update on the supply
-	const totalCost = data.quantity * data.unitCost;
-	if (totalCost < 0) {
-		throw new ErrorBadRequest("Total cost cannot be negative");
-	}
-
-	// Get the diference beetwen the old and the new const
-	const costDiference = totalCost - supply.totalCost;
-	const newTotalCost = supply.totalCost + costDiference;
-
-	// Get the diference beetwen the old and the new stock on product
-	const stockDiference = data.quantity - product.stock;
-	if (stockDiference < 0) {
-		throw new ErrorBadRequest("Stock cannot be negative");
-	}
+	// Invetory the quantity of the product
+	const quantityDiference = data.quantity - oldProductSupply.quantity;
+	// Calculate the new Stock of the product
+	const newStock = (oldProduct.stock - quantityDiference) * -1
+	// Get the diference between the old and the new cost
+	const totalCostDiference = (data.unitCost * data.quantity) - (oldProductSupply.unitCost * oldProductSupply.quantity);
+	// Update the product on the sale, the total cost of the sale and the quantity of the product in stock
+	try {
+		const [_, __, updatedProduct] = await prisma.$transaction([
 
 
-	const [updatedSupplyTotalCost, updatedProductTotalStock, updatedProductOnSupply] = await prisma.$transaction(// Update the product on the supply
-		[
 
-			// Update the total cost of the supply
+			// Update the total cost of the sale
 			prisma.supply.update({
 				where: { id: supplyId },
 				data: {
-					totalCost: newTotalCost
+					totalCost: oldSupply.totalCost + totalCostDiference
 				}
 			}),
 
-			// Update the stock of the product
+			// Update the quantity of the product
 			prisma.product.update({
 				where: { id: productId },
 				data: {
-					stock: {
-						increment: stockDiference
-					}
+					stock: newStock
 				}
 			}),
+
+			// Update the product on the sale
 			prisma.productsOnSupply.update({
 				where: {
 					productId_supplyId: {
-						productId,
-						supplyId
+						productId, supplyId
 					}
-				}, data,
+				},
+				data,
 				include: {
 					product: true,
 					supply: true
 				}
-			})
+			}),
 		]);
 
-
-	return updatedProductOnSupply;
+		return updatedProduct;
+	} catch (error) {
+		throw new Error("Product on sale not updated");
+	}
 }
 
 /**
@@ -274,12 +272,6 @@ export async function removeProductOnSupply(
 	supplyId: string,
 	productId: string
 ) {
-	// Check if the supply exists
-	const supply = await checkIfSupplyExists(supplyId);
-
-	// Check if the product exists
-	const product = await checkIfProductExists(productId);
-
 	// Check if the product is already on the supply
 	const productOnSupply = await prisma.productsOnSupply.findFirst({
 		where: {
@@ -292,18 +284,14 @@ export async function removeProductOnSupply(
 		throw new ErrorNotFound("Product on supply not found");
 	}
 
-	const [deletedProductOnSupply] = await prisma.$transaction([
-		// Delete the product on the supply
-		prisma.productsOnSupply.delete({
-			where: {
-				productId_supplyId: {
-					productId,
-					supplyId
-				},
-			},
-			include: {
-				product: true,
-				supply: true
+	const [_, __, deletedProductOnSupply] = await prisma.$transaction([
+		// Update the total cost of the supply
+		prisma.supply.update({
+			where: { id: supplyId },
+			data: {
+				totalCost: {
+					decrement: productOnSupply.quantity * productOnSupply.unitCost
+				}
 			}
 		}),
 
@@ -317,19 +305,22 @@ export async function removeProductOnSupply(
 			}
 		}),
 
-		// Update the total cost of the supply
-		prisma.supply.update({
-			where: { id: supplyId },
-			data: {
-				totalCost: {
-					decrement: productOnSupply.quantity * productOnSupply.unitCost
-				}
+		// Delete the product on the supply
+		prisma.productsOnSupply.delete({
+			where: {
+				productId_supplyId: {
+					productId,
+					supplyId
+				},
+			},
+			include: {
+				product: true,
+				supply: true
 			}
-		})
+		}),
 	]);
 
 
 	return deletedProductOnSupply;
-
 }
 

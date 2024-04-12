@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 import { deleteProductOnSupply, getProductsOnSupplyById, postProductsOnSupply, putProductOnSupply, getProductsOnSupply } from "./productsOnSuppliesController";
+import { zValidatorMiddleware } from "@/middlewares/zValidatorMiddleware";
+import { createProductOnSupplySchema, updateProductOnSupplySchema } from "./productsOnSupply.schema";
 
 export const productsOnSupplyRouter = new Hono();
 
@@ -11,10 +13,10 @@ productsOnSupplyRouter.get("/", getProductsOnSupply);
 productsOnSupplyRouter.get("/:productId", getProductsOnSupplyById);
 
 // Insert a Product on Supply
-productsOnSupplyRouter.post("/", postProductsOnSupply);
+productsOnSupplyRouter.post("/", zValidatorMiddleware(createProductOnSupplySchema), postProductsOnSupply);
 
 // Update a Product on Supply
-productsOnSupplyRouter.put("/:productId", putProductOnSupply);
+productsOnSupplyRouter.put("/:productId", zValidatorMiddleware(updateProductOnSupplySchema), putProductOnSupply);
 
 // Delete a Product on Supply
 productsOnSupplyRouter.delete("/:productId", deleteProductOnSupply);

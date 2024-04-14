@@ -67,13 +67,7 @@ export async function findProductOnSupply(supplyId: string, productId: string) {
  * @param products 
  * @returns 
  */
-export async function insertProductsOnSupply(supplyId: string, product: Pick<ProductsOnSupply, "productId" | "quantity">) {
-	// Validate if the supply exists
-	await checkIfSupplyExists(supplyId)
-
-	// Chek if products exists
-	const oldProduct = await checkIfProductExists(product.productId);
-
+export async function insertProductsOnSupply(supplyId: string, product: Pick<ProductsOnSupply, "productId" | "quantity" | "unitCost">) {
 	// Check if the product is already on the supply
 	const productsOnSupplyExists = await prisma.productsOnSupply.findUnique({
 		where: {
@@ -87,53 +81,13 @@ export async function insertProductsOnSupply(supplyId: string, product: Pick<Pro
 		}
 	});
 
-	// If the product is already on the supply add the quantity to the product on the supply
+	// If the product is already on the supply update it instead of creating a new one
 	if (productsOnSupplyExists) {
-		await prisma.$transaction([
-			// Update the total cost of the supply
-			prisma.supply.update({
-				where: { id: supplyId },
-				data: {
-					totalCost: {
-						increment: oldProduct.price * product.quantity
-					}
-				}
-			}),
-
-			// Update the quantity of the product
-			prisma.product.update({
-				where: { id: product.productId },
-				data: {
-					stock: {
-						increment: product.quantity
-					}
-				}
-			}),
-
-
-			// Update the product on the supply
-			prisma.productsOnSupply.update({
-				where: {
-					productId_supplyId: {
-						productId: product.productId,
-						supplyId
-					}
-				},
-				data: {
-					quantity: {
-						increment: product.quantity
-					}
-				},
-				include: {
-					product: true,
-					supply: true
-				}
-			}),
-		]);
+		throw new ErrorBadRequest("Product already on supply");
 	}
 
 	// Calculate the total cost of the supply (Get the cost of the product table and set it to the product on supply cost field)
-	const totalCost = oldProduct.price * product.quantity;
+	const totalCost = product.unitCost * product.quantity;
 
 	try {
 		const [_, __, createdProducts] = await prisma.$transaction([
@@ -162,7 +116,6 @@ export async function insertProductsOnSupply(supplyId: string, product: Pick<Pro
 				data: {
 					...product,
 					supplyId,
-					unitCost: oldProduct.price,
 
 				},
 				include: {

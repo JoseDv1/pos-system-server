@@ -36,7 +36,7 @@ export async function postProductsOnSupply(ctx: Context) {
 	const { supplyId } = ctx.req.param();
 	const body = ctx.get("validatedData")
 	const productOnSupply = await insertProductsOnSupply(supplyId, body);
-	return ctx.json(productOnSupply);
+	return ctx.json(productOnSupply, 201);
 }
 
 /**

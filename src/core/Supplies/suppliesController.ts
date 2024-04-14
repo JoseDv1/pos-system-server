@@ -33,7 +33,7 @@ export async function getSupplyById(ctx: Context) {
  */
 export async function createSupply(ctx: Context) {
 	const body = ctx.get("validatedData")
-	const createdSupply = createSupplyService(body);
+	const createdSupply = await createSupplyService(body);
 	return ctx.json(createdSupply);
 }
 

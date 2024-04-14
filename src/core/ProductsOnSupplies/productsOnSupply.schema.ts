@@ -8,7 +8,7 @@ const productOnSupplySchema = z.object({
 })
 
 export const createProductOnSupplySchema = productOnSupplySchema.omit({
-	unitCost: true
+	supplyId: true
 })
 
 export const updateProductOnSupplySchema = productOnSupplySchema.partial()

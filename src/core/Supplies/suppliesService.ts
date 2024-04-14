@@ -4,7 +4,11 @@ import { Supply } from "@prisma/client";
 
 export async function findSupplies() {
 	// Get all supplies
-	const supplies = await prisma.supply.findMany();
+	const supplies = await prisma.supply.findMany({
+		include: {
+			provider: true
+		}
+	});
 	return supplies;
 }
 
@@ -19,6 +23,9 @@ export async function findSupplyById(id: string) {
 export async function createSupplyService(data: Pick<Supply, "providerId">) {
 	const newSupply = await prisma.supply.create({
 		data,
+		include: {
+			provider: true
+		}
 	});
 	return newSupply;
 }

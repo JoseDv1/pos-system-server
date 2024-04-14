@@ -27,16 +27,14 @@ export async function checkIfSupplyExists(supplyId: string) {
  * @returns an array of products on the supply with the supply and the provider
  */
 export async function findProductsOnSupply(supplyId: string) {
-
 	// Get all products on the supply
-	const productsOnSupply = await prisma.supply.findUnique({
-		where: { id: supplyId },
+	const productsOnSupply = await prisma.productsOnSupply.findMany({
+		where: {
+			supplyId
+		},
 		include: {
-			productsOnSupply: {
-				include: {
-					product: true
-				}
-			}
+			product: true,
+			supply: true
 		}
 	});
 

@@ -16,6 +16,9 @@ export async function findSupplies() {
 export async function findSupplyById(id: string) {
 	const supply = await prisma.supply.findUnique({
 		where: { id: id },
+		include: {
+			provider: true
+		}
 	});
 	return supply;
 }

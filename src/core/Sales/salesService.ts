@@ -188,5 +188,22 @@ export async function getSalesReportByDateService(from: string, to: string) {
 			date
 	`;
 
-	return sales;
+	const supplies = await prisma.$queryRaw`
+		SELECT 
+			date_trunc('day', "date") as date,
+			SUM("totalCost") as total
+		FROM 
+			"supplies"
+		WHERE 
+		"date" >= to_date(${from}, 'YYYY-MM-DD') AND "date" <= to_date(${to}, 'YYYY-MM-DD')
+		GROUP BY 
+			date
+		ORDER BY 
+			date
+	`;
+
+	return {
+		sales,
+		supplies
+	}
 }

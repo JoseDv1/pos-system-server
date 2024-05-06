@@ -61,7 +61,7 @@ export const updateClientService = async (id: string, data: Omit<Partial<Client>
 	}
 
 	// Validate if almost one field is provided
-	if (!data.name && !data.email && data.address) {
+	if (!data.name && !data.email && data.address && !data.active) {
 		throw new ErrorBadRequest("At least one field is required");
 	}
 

@@ -69,6 +69,7 @@ model Client {
   name    String  @unique
   address String?
   email   String? @unique
+  active  Boolean @default(true)
   sales   Sale[]
 
   @@map("clients")

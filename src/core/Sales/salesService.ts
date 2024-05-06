@@ -46,7 +46,11 @@ export const findSalesService = async () => {
 		{
 			include: {
 				client: true,
-				saleProducts: true
+				saleProducts: {
+					include: {
+						product: true
+					}
+				}
 			}
 		}
 	);

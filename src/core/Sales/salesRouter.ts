@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createSale, deleteSale, getSaleById, getSales, updateSale, markAllSalesAsPaidByClientController, markSaleAsPaidController, markSaleAsPendingController, getSalesReportByDate } from "./salesController"
+import { createSale, deleteSale, getSaleById, getSales, updateSale, markAllSalesAsPaidByClientController, markSaleAsPaidController, markSaleAsPendingController, getSalesReportByDate, setPaymentMethodController } from "./salesController"
 import { zValidatorMiddleware } from "@/middlewares/zValidatorMiddleware";
 import { createSalesSchema, updateSalesSchema } from "./sales.schema"
 
@@ -18,6 +18,9 @@ salesRouter.post("/", zValidatorMiddleware(createSalesSchema), createSale);
 salesRouter.put("/:id", zValidatorMiddleware(updateSalesSchema), updateSale);
 salesRouter.put("/:id/paid", markSaleAsPaidController);
 salesRouter.put("/:id/pending", markSaleAsPendingController);
+salesRouter.put("/:id/payment-method", zValidatorMiddleware(updateSalesSchema.pick({
+	paymentMethod: true
+})), setPaymentMethodController);
 
 
 

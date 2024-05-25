@@ -1,7 +1,7 @@
 
 import { ErrorBadRequest, ErrorNotFound } from "@/utils/errors";
 import { prisma } from "@/utils/prisma";
-import { Sale } from "@prisma/client";
+import { PaymentMethod, Sale } from "@prisma/client";
 
 
 /**
@@ -210,4 +210,19 @@ export async function getSalesReportByDateService(from: string, to: string) {
 		sales,
 		supplies
 	}
+}
+
+export async function setPaymentMethodService(id: string, paymentMethod: PaymentMethod) {
+	await checkIfSaleExist(id);
+
+	const updatedSale = await prisma.sale.update({
+		where: {
+			id: id
+		},
+		data: {
+			paymentMethod,
+		}
+	});
+
+	return updatedSale;
 }

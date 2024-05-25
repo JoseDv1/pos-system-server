@@ -110,3 +110,17 @@ export async function getSalesReportByDate(ctx: Context) {
 	const sales = await getSalesReportByDateService(from, to);
 	return ctx.json(sales);
 }
+
+export async function setPaymentMethodController(ctx: Context) {
+	const { id } = ctx.req.param();
+	const { paymentMethod } = ctx.get("validatedData");
+	const sale = await prisma.sale.update({
+		where: {
+			id: id
+		},
+		data: {
+			paymentMethod: paymentMethod
+		}
+	});
+	return ctx.json(sale);
+}

@@ -193,18 +193,20 @@ export async function getSalesReportByDateService(from: string, to: string) {
 	`;
 
 	const supplies = await prisma.$queryRaw`
-		SELECT 
-			date_trunc('day', "date") as date,
-			SUM("totalCost") as total
-		FROM 
-			"supplies"
-		WHERE 
-		"date" >= to_date(${from}, 'YYYY-MM-DD') AND "date" <= to_date(${to}, 'YYYY-MM-DD')
-		GROUP BY 
-			date
-		ORDER BY 
-			date
-	`;
+        SELECT 
+            date_trunc('day', "date") as date,
+            SUM("totalCost") as total
+        FROM 
+            "supplies"
+        WHERE 
+        "date" >= to_date(${from}, 'YYYY-MM-DD') AND "date" <= to_date(${to}, 'YYYY-MM-DD')
+        GROUP BY 
+            date_trunc('day', "date")
+        ORDER BY 
+            date_trunc('day', "date")
+    `;
+
+	console.log(supplies)
 
 	return {
 		sales,

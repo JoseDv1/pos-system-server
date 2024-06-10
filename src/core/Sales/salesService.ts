@@ -206,9 +206,80 @@ export async function getSalesReportByDateService(from: string, to: string) {
             date_trunc('day', "date")
     `;
 
-	console.log(supplies)
+	const { _sum: { totalCost: totalSalesCard } } = await prisma.sale.aggregate({
+		where: {
+			createdAt: {
+				gte: new Date(from),
+				lte: new Date(to)
+			},
+			paymentMethod: "CARD"
+		},
+		_sum: {
+			totalCost: true
+		}
+	});
+
+	const { _sum: { totalCost: totalSalesTransfer } } = await prisma.sale.aggregate({
+		where: {
+			createdAt: {
+				gte: new Date(from),
+				lte: new Date(to)
+			},
+			paymentMethod: "TRANSFER"
+		},
+		_sum: {
+			totalCost: true
+		}
+	});
+
+
+	const { _sum: { totalCost: totalExpenses } } = await prisma.supply.aggregate({
+		where: {
+			date: {
+				gte: new Date(from),
+				lte: new Date(to)
+			}
+		},
+		_sum: {
+			totalCost: true
+		}
+	})
+
+	const { _sum: { totalCost: totalSalesCash } } = await prisma.sale.aggregate({
+		where: {
+			createdAt: {
+				gte: new Date(from),
+				lte: new Date(to)
+			},
+			paymentMethod: "CASH"
+		},
+		_sum: {
+			totalCost: true
+		}
+	});
+
+	const { _sum: { totalCost: totalSales } } = await prisma.sale.aggregate({
+		where: {
+			createdAt: {
+				gte: new Date(from),
+				lte: new Date(to)
+			},
+		},
+		_sum: {
+			totalCost: true
+		},
+	});
+
+
+
+
 
 	return {
+		totalExpenses,
+		totalSalesTransfer,
+		totalSalesCard,
+		totalSalesCash,
+		totalSales,
 		sales,
 		supplies
 	}

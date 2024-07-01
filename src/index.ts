@@ -2,7 +2,6 @@ import { type Context, Hono } from 'hono'
 
 // Import Middlewares
 import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
 
 // Import routes
 import { handleError } from '@/utils/errors'
@@ -16,8 +15,6 @@ const port = 3000
 
 // ---- Middlewares ----
 app.use("*", cors())
-app.use("*", logger())
-
 // ---- Routes ----
 app.route('/api', apiRoutes)
 

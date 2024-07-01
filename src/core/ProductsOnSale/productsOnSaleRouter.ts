@@ -2,14 +2,15 @@ import { Hono } from "hono";
 import { getProductsOnSale, getProductOnSale, postProductsOnSale, putProductOnSale, deleteProductOnSale, addOneProductOnSale } from "./productsOnSaleController";
 import { createProductsOnSaleSchema, updateProductsOnSaleSchema } from "./productsOnSale.schema";
 import { zValidatorMiddleware } from "@/middlewares/zValidatorMiddleware";
+import { cacheMiddleWare } from "@/middlewares/cacheMiddleware";
 
 export const productsOnSaleRouter = new Hono();
 
 // Get All Products on Sale
-productsOnSaleRouter.get("/", getProductsOnSale);
+productsOnSaleRouter.get("/", cacheMiddleWare("no-cache"), getProductsOnSale);
 
 // Get a Product on Sale by Id
-productsOnSaleRouter.get("/:productId", getProductOnSale);
+productsOnSaleRouter.get("/:productId", cacheMiddleWare("no-cache"), getProductOnSale);
 
 // Insert a Product on Sale
 productsOnSaleRouter.post("/", zValidatorMiddleware(createProductsOnSaleSchema), postProductsOnSale);

@@ -2,14 +2,15 @@ import { Hono } from "hono";
 import { createSale, deleteSale, getSaleById, getSales, updateSale, markAllSalesAsPaidByClientController, markSaleAsPaidController, markSaleAsPendingController, getSalesReportByDate, setPaymentMethodController } from "./salesController"
 import { zValidatorMiddleware } from "@/middlewares/zValidatorMiddleware";
 import { createSalesSchema, updateSalesSchema } from "./sales.schema"
+import { cacheMiddleWare } from "@/middlewares/cacheMiddleware";
 
 export const salesRouter = new Hono();
 
 // Get all sales
-salesRouter.get("/", getSales);
+salesRouter.get("/", cacheMiddleWare("no-cache"), getSales);
 salesRouter.get("/report", getSalesReportByDate)
 // Get sale by id
-salesRouter.get("/:id", getSaleById);
+salesRouter.get("/:id", cacheMiddleWare("no-cache"), getSaleById);
 
 // Create a new sale
 salesRouter.post("/", zValidatorMiddleware(createSalesSchema), createSale);

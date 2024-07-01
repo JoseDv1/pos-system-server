@@ -32,7 +32,6 @@ export async function getSaleById(ctx: Context) {
  */
 export async function createSale(ctx: Context) {
 	const data = ctx.get("validatedData");
-	console.log(data);
 	const createdSale = await createSaleService(data)
 	return ctx.json(createdSale);
 }
